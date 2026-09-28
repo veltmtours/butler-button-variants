@@ -1149,7 +1149,7 @@ a { text-decoration: none; color: inherit; }
       var ok = true;
       [name, email].forEach(function(inp){
         var row = inp.closest('.bb-modal__row');
-        var valid = inp.value.trim().length > 0 && (inp.type !== 'email' || /^[^@s]+@[^@s]+.[^@s]+$/.test(inp.value.trim()));
+        var valid = inp.value.trim().length > 0 && (inp.type !== 'email' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(inp.value.trim()));
         row.classList.toggle('has-error', !valid);
         if (!valid) ok = false;
       });
