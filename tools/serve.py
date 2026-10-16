@@ -32,8 +32,9 @@ FORMS_PATH = "/forms/request"
 
 # Which directory to serve as the web root, and which file to serve for "/".
 # Defaults keep local dev unchanged (repo root + index.html). Production
-# (Heroku) sets WEB_ROOT=proposed and INDEX_FILE=home.html via the Procfile so
-# butlerbutton.co opens on the home hero page instead of the variant showcase.
+# (Heroku) sets WEB_ROOT=proposed and INDEX_FILE=hotel-concierge-program.html
+# via the Procfile so butlerbutton.co opens on the hotel concierge program page
+# instead of the variant showcase.
 WEB_ROOT = os.environ.get("WEB_ROOT", ".")
 INDEX_FILE = os.environ.get("INDEX_FILE", "index.html")
 
