@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guest Travel Assistant for Hotels | Butler Button</title>
-<meta name="description" content="Butler Button is the travel assistant your hotel gives every guest: live flight and weather alerts, help when plans change, and a 24/7 concierge by text or WhatsApp. Free to the hotel, live within a week.">
+<meta name="description" content="Butler Button is the travel assistant your hotel gives every guest: live flight and weather alerts, help when plans change, and a 24/7 concierge by text or WhatsApp. US$100 a month per property, live within a week.">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,7 +83,7 @@ a{color:inherit;text-decoration:none;}
 .h1{font-family:var(--serif);font-size:clamp(3.2rem,8.5vw,7.5rem);font-weight:700;letter-spacing:-.04em;line-height:.97;margin:0;}
 .h2{font-family:var(--serif);font-size:clamp(2rem,4.5vw,3.6rem);font-weight:700;letter-spacing:-.035em;line-height:1.1;margin:0;}
 .h3{font-family:var(--serif);font-size:clamp(1.2rem,1.8vw,1.5rem);font-weight:700;letter-spacing:-.02em;line-height:1.25;margin:0;}
-.stat{font-family:var(--serif);font-size:clamp(3rem,6vw,5rem);font-weight:700;letter-spacing:-.045em;line-height:1;margin:0;}
+.stat{font-family:var(--serif);font-variant-numeric:lining-nums;font-size:clamp(3rem,6vw,5rem);font-weight:700;letter-spacing:-.045em;line-height:1;margin:0;}
 .sub{font-size:clamp(1rem,1.8vw,1.2rem);line-height:1.6;font-weight:400;letter-spacing:-.01em;}
 .eyebrow{font-size:.72rem;text-transform:uppercase;font-weight:600;letter-spacing:.16em;display:block;}
 
@@ -184,7 +184,7 @@ a{color:inherit;text-decoration:none;}
   transition:transform .5s var(--ease),box-shadow .5s var(--ease);}
 .stat-card:hover{transform:translateY(-6px);box-shadow:var(--glow-card);}
 .stat-card .chip{margin-bottom:1.8rem;}
-.stat-card .stat{color:var(--indigo);margin-bottom:.9rem;}
+.stat-card .stat{color:var(--indigo);margin-bottom:.9rem;font-size:clamp(2.6rem,4.6vw,3.8rem);}
 .stat-card p{margin:0;color:var(--body-gray);font-size:.95rem;}
 .sources{margin-top:2.5rem;font-size:.78rem;color:var(--gray-400);font-style:italic;}
 
@@ -327,7 +327,7 @@ a{color:inherit;text-decoration:none;}
 .panel-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1.9rem;}
 .pstat{background:var(--dark-3);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-hub);
   padding:1.1rem .7rem;text-align:center;}
-.pstat b{display:block;font-family:var(--serif);font-size:1.55rem;color:var(--indigo-light);line-height:1.1;}
+.pstat b{display:block;font-family:var(--serif);font-variant-numeric:lining-nums;font-size:1.55rem;color:var(--indigo-light);line-height:1.1;}
 .pstat span{font-size:.72rem;color:var(--text-mute);}
 .toggles{display:grid;gap:.95rem;}
 .toggle{display:flex;align-items:center;justify-content:space-between;gap:1rem;font-size:.9rem;}
@@ -392,7 +392,7 @@ a{color:inherit;text-decoration:none;}
 .exrow{display:flex;justify-content:space-between;align-items:baseline;padding:.65rem 0;
   border-bottom:1px solid var(--border-gray);font-size:.94rem;color:var(--gray-500);}
 .exrow b{color:var(--near-black);font-size:1.02rem;}
-.exbig{margin:0;font-family:var(--serif);font-weight:700;font-size:clamp(1.15rem,2vw,1.45rem);
+.exbig{margin:0;font-family:var(--serif);font-variant-numeric:lining-nums;font-weight:700;font-size:clamp(1.15rem,2vw,1.45rem);
   color:var(--indigo);letter-spacing:-.02em;}
 
 /* Four-step guest journey */
@@ -521,10 +521,10 @@ a{color:inherit;text-decoration:none;}
       <span class="brand-name">Butler<em>Button</em></span>
     </a>
     <div class="nav-links">
-      <a href="#problem">The problem</a>
       <a href="#how">For guests</a>
       <a href="#alerts">Travel alerts</a>
       <a href="#upside">Revenue</a>
+      <a href="#terms">Pricing</a>
       <a href="#onboard">Getting live</a>
     </div>
     <a class="btn btn-primary" href="#pilot">Run a pilot</a>
@@ -543,7 +543,7 @@ a{color:inherit;text-decoration:none;}
         <a class="btn btn-primary" href="#pilot">Start a 30-day pilot</a>
         <a class="btn btn-ghost" href="#solution">See how it works</a>
       </div>
-      <p class="hero-note"><span class="dot"></span> Free to activate, and free to the hotel for as long as you run it</p>
+      <p class="hero-note"><span class="dot"></span> US$100 a month per property. No setup fee, no hardware.</p>
     </div>
 
     <div class="thread" aria-label="Example guest conversation">
@@ -569,29 +569,29 @@ a{color:inherit;text-decoration:none;}
 <section class="section light">
   <div class="wrap">
     <div class="head reveal">
-      <span class="eyebrow">The shift</span>
-      <h2 class="h2">Your guests already live on their phones</h2>
-      <p class="sub">Messaging, not the front desk, is how guests expect to hear from your property, on the way to you and during the stay.</p>
+      <span class="eyebrow">The numbers</span>
+      <h2 class="h2">Flights run late. Guests want to hear about it by message.</h2>
+      <p class="sub">Disruption is part of almost every trip now, and messaging, not the front desk, is how guests expect to hear from your property.</p>
     </div>
     <div class="stats">
       <div class="stat-card reveal">
+        <span class="chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round"/></svg></span>
+        <p class="stat">1 in 4</p>
+        <p>US flights arrived late in 2025, the worst on-time record since 2014</p>
+      </div>
+      <div class="stat-card reveal">
+        <span class="chip"><svg viewBox="0 0 24 24"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.3c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" stroke-linejoin="round"/></svg></span>
+        <p class="stat">118,000+</p>
+        <p>US flights cancelled in 2025 by the largest airlines and their regional partners</p>
+      </div>
+      <div class="stat-card reveal">
         <span class="chip"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-linejoin="round"/></svg></span>
-        <p class="stat">70%</p>
-        <p>of travellers prefer to reach hotels by messaging rather than calling</p>
-      </div>
-      <div class="stat-card reveal">
-        <span class="chip"><svg viewBox="0 0 24 24"><path d="M20 4L3 11l6 2.5L12 20z" stroke-linejoin="round"/></svg></span>
-        <p class="stat">98%</p>
-        <p>open rate on WhatsApp, against roughly 20% for email</p>
-      </div>
-      <div class="stat-card reveal">
-        <span class="chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18 15 15 0 010-18z"/></svg></span>
-        <p class="stat">#1</p>
-        <p>messaging app across India, the Middle East, Europe and South America</p>
+        <p class="stat">73%</p>
+        <p>of Americans prefer messaging to calling for hotel, airline and other travel reservations</p>
       </div>
     </div>
-    <p class="steps-foot reveal" style="margin-top:2.4rem;">Guests expect hospitality to be as easy as sending a message.</p>
-    <p class="sources reveal">Sources: Cloudbeds 2026, WhatsApp open-rate benchmarks, Oracle and Skift hospitality study.</p>
+    <p class="steps-foot reveal" style="margin-top:2.4rem;">When a flight goes wrong, the first message your guest gets should come from you.</p>
+    <p class="sources reveal">Sources: US DOT airline on-time data for 2025, via U.S. PIRG Education Fund, Plane Truth 2026; LivePerson survey of 2,000 US adults.</p>
   </div>
 </section>
 
@@ -702,7 +702,7 @@ a{color:inherit;text-decoration:none;}
         <li class="reveal">
           <span class="chip"><svg viewBox="0 0 24 24"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.3c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" stroke-linejoin="round"/></svg></span>
           <div><h3 class="h3">Flight watch</h3>
-          <p>Add arrival and departure flight numbers with the guest list. Butler checks live status from the day before, more often as departure nears and every 30 minutes once a flight is late, and messages the guest if it is delayed, cancelled or diverted.</p></div>
+          <p>Add arrival and departure flight numbers with the guest list. Butler checks live status 24 hours, 6 hours, 3 hours and 90 minutes before departure, then every 30 minutes once a flight is late, and messages the guest if it is delayed, cancelled or diverted.</p></div>
         </li>
         <li class="reveal">
           <span class="chip"><svg viewBox="0 0 24 24"><path d="M6.5 16.5A4.5 4.5 0 017 7.6a6 6 0 0111.6 1.6A3.7 3.7 0 0118 16.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 12l-2.5 4h3.5L11 20.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -870,7 +870,7 @@ a{color:inherit;text-decoration:none;}
     </div>
     <div class="ugrid">
       <div class="reveal">
-        <p class="upside-lead">Every Butler Button booking becomes a new revenue line your front desk never had to sell.</p>
+        <p class="upside-lead">Every Butler Button booking becomes a new revenue line your front desk never had to sell, for a flat US$100 a month.</p>
         <ul class="rlist">
           <li><span class="rdot"></span>Airport transfers</li>
           <li><span class="rdot"></span>Restaurant reservations</li>
@@ -884,13 +884,15 @@ a{color:inherit;text-decoration:none;}
       </div>
       <div class="chart reveal">
         <h4 style="margin-bottom:.3rem;">Illustrative example</h4>
-        <p style="margin:0 0 1.8rem;font-size:.9rem;color:var(--gray-500);">25-room boutique hotel</p>
-        <div class="exrow"><span>ADR</span><b>₹3,000</b></div>
-        <div class="exrow"><span>Occupancy</span><b>70%</b></div>
-        <div class="exrow"><span>Monthly room revenue</span><b>₹16.2 lakhs</b></div>
-        <p style="margin:1.6rem 0 .5rem;font-size:.92rem;color:var(--body-gray);">If 10 guests a day spend an extra ₹500 through Butler Button:</p>
-        <p class="exbig">Additional revenue: ≈ ₹1.5 lakhs per month</p>
-        <p style="margin:1.2rem 0 0;font-size:.78rem;font-style:italic;color:var(--gray-400);">Illustrative example. Actual results depend on occupancy, pricing, guest demand and available services.</p>
+        <p style="margin:0 0 1.8rem;font-size:.9rem;color:var(--gray-500);">25-room hotel at the US average rate and occupancy</p>
+        <div class="exrow"><span>ADR</span><b>$160</b></div>
+        <div class="exrow"><span>Occupancy</span><b>63%</b></div>
+        <div class="exrow"><span>Monthly room revenue</span><b>$75,600</b></div>
+        <div class="exrow"><span>Butler Button</span><b>$100 / month</b></div>
+        <p style="margin:1.6rem 0 .5rem;font-size:.92rem;color:var(--body-gray);">If 10 guests a day spend an extra $25 through Butler Button:</p>
+        <p class="exbig">Additional guest spend: ≈ $7,500 per month</p>
+        <p style="margin:.6rem 0 0;font-size:.88rem;color:var(--body-gray);">Butler Button costs about 0.13% of room revenue.</p>
+        <p style="margin:1.2rem 0 0;font-size:.78rem;font-style:italic;color:var(--gray-400);">Illustrative example. US average daily rate (US$158.67) and occupancy (63.0%) for 2024 from CoStar STR. Actual results depend on occupancy, pricing, guest demand and available services.</p>
       </div>
     </div>
   </div>
@@ -900,15 +902,17 @@ a{color:inherit;text-decoration:none;}
 <section class="section lighter light" id="terms">
   <div class="wrap">
     <div class="head reveal">
-      <span class="eyebrow">The partnership</span>
-      <h2 class="h2">Simple terms, nothing to lose</h2>
+      <span class="eyebrow">Pricing</span>
+      <h2 class="h2">One flat price per property</h2>
+      <p class="sub">Everything on this page, for every guest you have, for US$100 a month.</p>
     </div>
     <div class="tgrid">
       <article class="tcard reveal">
         <span class="chip"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M3 12h18M12 8v12M12 8c-2.5 0-4-1-4-2.5S9.5 3 12 8zm0 0c2.5 0 4-1 4-2.5S14.5 3 12 8z" stroke-linejoin="round"/></svg></span>
-        <h3 class="h3">What it costs you</h3>
-        <p>Nothing, ever. No activation fee, no setup cost, no monthly software bill.</p>
-        <b>Always free to the hotel</b>
+        <p class="stat" style="font-size:clamp(2.6rem,5vw,3.6rem);color:var(--indigo);margin:0 0 .4rem;">$100</p>
+        <h3 class="h3">per property, per month</h3>
+        <p>Flight and weather alerts, the 24/7 concierge, guest broadcasts, deals and the partner portal. No setup fee, no hardware, no per-guest charges.</p>
+        <b>US$100 / month, flat</b>
       </article>
       <article class="tcard reveal">
         <span class="chip"><svg viewBox="0 0 24 24"><path d="M4 17l5-5 3.5 3.5L20 7m0 0h-4.5M20 7v4.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -923,7 +927,7 @@ a{color:inherit;text-decoration:none;}
         <b>Your property. Your brand. Your guest.</b>
       </article>
     </div>
-    <p class="terms-foot reveal">No hardware to install. No software to purchase. Just a travel assistant your guests remember you for.</p>
+    <p class="terms-foot reveal">US$100 a month. No hardware to install. Just a travel assistant your guests remember you for.</p>
   </div>
 </section>
 
@@ -1020,7 +1024,7 @@ a{color:inherit;text-decoration:none;}
     <div class="band reveal">
       <span class="eyebrow">Next step</span>
       <h2 class="h2">Let's run a pilot.</h2>
-      <p class="sub">No commitment. No upfront cost. Just an opportunity to see how Butler Button looks after your guests' trips.</p>
+      <p class="sub">No commitment. No setup fee. Just an opportunity to see how Butler Button looks after your guests' trips.</p>
       <div class="pgrid4">
         <div class="pcard4">
           <span class="chip"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 10h16m-9 5l1.8 1.8 3.2-3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
@@ -1028,7 +1032,7 @@ a{color:inherit;text-decoration:none;}
         </div>
         <div class="pcard4">
           <span class="chip"><svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="1.5"/><path d="M3 12h18M12 8v12M12 8c-2.5 0-4-1-4-2.5S9.5 3 12 8zm0 0c2.5 0 4-1 4-2.5S14.5 3 12 8z" stroke-linejoin="round"/></svg></span>
-          <span>Free to activate</span>
+          <span>US$100 / month after</span>
         </div>
         <div class="pcard4">
           <span class="chip"><svg viewBox="0 0 24 24"><path d="M12 3s5 2 5 8c0 3-2 5-2 5H9s-2-2-2-5c0-6 5-8 5-8z" stroke-linejoin="round"/><path d="M9 16l-2 4 3-1.5M15 16l2 4-3-1.5" stroke-linejoin="round"/></svg></span>
@@ -1039,7 +1043,7 @@ a{color:inherit;text-decoration:none;}
           <span>We review results together</span>
         </div>
       </div>
-      <p class="reveal" style="margin:0 0 2rem;font-family:var(--serif);font-style:italic;font-size:clamp(1rem,1.8vw,1.22rem);color:rgba(255,255,255,.92);">See Butler Button in action with a free 30-day pilot. If it adds value, we move forward. If not, there's no obligation.</p>
+      <p class="reveal" style="margin:0 0 2rem;font-family:var(--serif);font-style:italic;font-size:clamp(1rem,1.8vw,1.22rem);color:rgba(255,255,255,.92);">See Butler Button in action with a free 30-day pilot. If it adds value, it's US$100 a month per property. If not, there's no obligation.</p>
       <div class="pilot-cta">
         <button type="button" class="btn btn-white" data-request="demo">Request a demo</button>
         <button type="button" class="btn btn-ghost" data-request="meeting">Request a 15-minute meeting</button>
