@@ -151,12 +151,12 @@ a{color:inherit;text-decoration:none;}
 
 /* Founder */
 .founder-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:4.5rem;align-items:center;}
-.founder-photo{position:relative;aspect-ratio:4/5;border-radius:var(--r-product);overflow:hidden;
-  background:var(--grad-primary);box-shadow:var(--glow-card),var(--shadow-xl);}
+.founder-photo{position:relative;aspect-ratio:1/1;max-width:380px;margin:0 auto;border-radius:50%;overflow:hidden;
+  background:var(--grad-primary);box-shadow:0 0 0 10px var(--indigo-tint),0 0 0 11px rgba(79,70,229,.18),var(--glow-card),var(--shadow-xl);}
 .founder-mono{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-family:var(--serif);font-size:clamp(4rem,9vw,7rem);font-weight:700;color:rgba(255,255,255,.92);letter-spacing:-.02em;
   background:radial-gradient(420px 320px at 30% 20%,rgba(255,255,255,.22),transparent 60%);}
-.founder-cap{margin:1.1rem 0 0;font-size:.86rem;color:var(--gray-500);}
+.founder-cap{margin:1.9rem 0 0;font-size:.86rem;color:var(--gray-500);text-align:center;}
 .founder-cap b{color:var(--near-black);font-weight:600;}
 .light .founder-role{margin:.5rem 0 1.8rem;font-size:1rem;color:var(--gray-500);font-weight:500;}
 .founder-quote{margin:0 0 1.6rem;padding:.2rem 0 .2rem 1.4rem;border-left:3px solid var(--indigo);
@@ -167,8 +167,8 @@ a{color:inherit;text-decoration:none;}
   color:var(--indigo-hover);font-size:.86rem;font-weight:600;}
 .founder-link{display:inline-flex;align-items:center;gap:.4rem;font-weight:600;color:var(--indigo);}
 .founder-link:hover{color:var(--indigo-hover);text-decoration:underline;text-underline-offset:3px;}
-@media(max-width:900px){.founder-grid{grid-template-columns:1fr;gap:2.75rem;}.founder-photo{max-width:340px;}.founder-cap{display:none;}}
-@media(max-width:640px){.founder-photo{max-width:260px;}}
+@media(max-width:900px){.founder-grid{grid-template-columns:1fr;gap:2.75rem;}.founder-photo{max-width:280px;margin:0;}.founder-cap{display:none;}}
+@media(max-width:640px){.founder-photo{max-width:220px;margin-left:10px;}}
 
 /* Signature: guest thread — scenario radius 20px */
 .thread{background:rgba(17,17,17,.74);border:1px solid rgba(255,255,255,.09);
@@ -1106,7 +1106,7 @@ a{color:inherit;text-decoration:none;}
     <figure class="reveal" style="margin:0;">
       <div class="founder-photo">
         <span class="founder-mono" aria-hidden="true">AD</span>
-        <img src="assets/ansh-dixit.jpg" alt="Ansh Dixit, Founder and CEO of Butler Button" loading="lazy" onerror="this.remove()">
+        <img src="assets/ansh-dixit.jpg" alt="Ansh Dixit, Founder and CEO of Butler Button" width="400" height="400" loading="lazy" onerror="this.remove()">
       </div>
       <figcaption class="founder-cap"><b>Ansh Dixit</b> &middot; Founder and CEO</figcaption>
     </figure>
