@@ -68,6 +68,17 @@ def form_origin_allowed(origin: str) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
+    def end_headers(self) -> None:
+        # Pages must never be served stale after a deploy. Without this the
+        # stdlib sends HTML with Last-Modified only, so browsers guess a cache
+        # lifetime and keep showing the old page. `no-cache` makes them
+        # revalidate every visit, which the stdlib answers with a cheap 304.
+        if self.command in ("GET", "HEAD") and not self.path.startswith(API_PREFIX):
+            page = self.path.split("?", 1)[0].split("#", 1)[0]
+            if page.endswith((".html", "/")):
+                self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
     def _send_cors(self) -> None:
         for k, v in CORS_HEADERS.items():
             self.send_header(k, v)
@@ -119,6 +130,12 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path in ("", "/"):
             self.path = "/" + INDEX_FILE
         super().do_GET()
+
+    def do_HEAD(self) -> None:  # noqa: N802
+        # Same landing page as GET, so HEAD / describes the page GET / returns.
+        if self.path in ("", "/"):
+            self.path = "/" + INDEX_FILE
+        super().do_HEAD()
 
     # ── Demo / meeting request forms ────────────────────────────────────
     def _client_ip(self) -> str:
