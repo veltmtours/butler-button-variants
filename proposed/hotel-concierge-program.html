@@ -223,6 +223,16 @@ a{color:inherit;text-decoration:none;}
 .stat-card .stat{color:var(--indigo);margin-bottom:.9rem;font-size:clamp(2.6rem,4.6vw,3.8rem);}
 .stat-card p{margin:0;color:var(--body-gray);font-size:.95rem;}
 .sources{margin-top:2.5rem;font-size:.78rem;color:var(--gray-400);font-style:italic;}
+/* The shift — not just flights */
+.disrupt{margin-top:3rem;text-align:center;}
+.disrupt-title{margin:0 0 1.2rem;font-size:.8rem;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gray-500);}
+.disrupt ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem;}
+.disrupt li{display:inline-flex;align-items:center;gap:.55rem;background:var(--white);
+  border:1px solid var(--border-gray);border-radius:var(--r-pill);padding:.55rem 1.1rem .55rem .6rem;
+  font-size:.92rem;color:var(--text-dark);box-shadow:var(--shadow-sm);}
+.disrupt li svg{width:26px;height:26px;padding:5px;border-radius:50%;background:var(--indigo-tint);
+  stroke:var(--indigo);fill:none;stroke-width:1.8;flex:none;}
 
 /* The problem */
 .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
@@ -648,7 +658,7 @@ a{color:inherit;text-decoration:none;}
     <div class="head reveal">
       <span class="eyebrow">Why Butler Button exists</span>
       <h2 class="h2">Trips go wrong more often than anyone plans for</h2>
-      <p class="sub">And most travelers now book everything themselves, so when it goes wrong there is no one in their corner.</p>
+      <p class="sub">Flights are only the start. Storms, road closures, accidents and missed connections leave travelers stuck every day, and most of them booked everything themselves, so there is no one in their corner.</p>
     </div>
     <div class="stats">
       <div class="stat-card reveal">
@@ -667,7 +677,18 @@ a{color:inherit;text-decoration:none;}
         <p>of US travelers did not use a travel agent in 2025. When plans fall apart, there's no agent to call.</p>
       </div>
     </div>
-    <p class="steps-foot reveal" style="margin-top:2.4rem;">They're left with an app, a chatbot and a hold queue.</p>
+    <div class="disrupt reveal">
+      <p class="disrupt-title">And it's not just flights</p>
+      <ul>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 16a4 4 0 01-.5-8A5.5 5.5 0 0117 8.5a3.75 3.75 0 01.5 7.5" stroke-linecap="round"/><path d="M12 13l-2 4h4l-2 4" stroke-linecap="round" stroke-linejoin="round"/></svg>Storms and severe weather</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L2 20h20z" stroke-linejoin="round"/><path d="M12 10v4M12 17h.01" stroke-linecap="round"/></svg>Road closures and accidents</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14l-1.5-5h-11zM6.5 12L8 7h8l1.5 5" stroke-linejoin="round"/><circle cx="8" cy="19" r="1.5"/><circle cx="16" cy="19" r="1.5"/></svg>A missed transfer or no-show ride</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h12M12 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 5v14" stroke-linecap="round"/></svg>Diversions and missed connections</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="13" rx="2"/><path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" stroke-linejoin="round"/></svg>Lost or delayed luggage</li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01" stroke-linecap="round"/></svg>Strikes, outages and other surprises</li>
+      </ul>
+    </div>
+    <p class="steps-foot reveal" style="margin-top:2.4rem;">Whatever leaves them stuck, they're left with an app, a chatbot and a hold queue.<br>With Butler Button, our team takes care of them.</p>
     <p class="sources reveal">Sources: US DOT on-time data for 2025, via U.S. PIRG Education Fund, Plane Truth 2026; Phocuswright, Travel Agents in the Digital Age (2025): 16% of US travelers used an agent.</p>
   </div>
 </section>
