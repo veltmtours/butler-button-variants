@@ -845,5 +845,30 @@ class PageWiring(unittest.TestCase):
             self.assertIn(required, mapped.values(), f"{required} is never sent")
 
 
+class CacheHeaders(unittest.TestCase):
+    """Pages revalidate on every visit so a deploy shows up at once; assets keep the default."""
+
+    @staticmethod
+    def _cache_control(path: str) -> str:
+        with urllib.request.urlopen(f"{BASE}{path}", timeout=10) as res:
+            return res.headers.get("Cache-Control", "")
+
+    def test_pages_are_not_served_stale(self) -> None:
+        for path in ("/", "/hotel-concierge-program.html", "/hotel-concierge-program.html?v=2"):
+            self.assertEqual(self._cache_control(path), "no-cache", path)
+
+    def test_assets_are_left_alone(self) -> None:
+        self.assertNotIn("no-cache", self._cache_control("/assets/logo.svg"))
+
+    def test_head_root_describes_the_landing_page(self) -> None:
+        def head(path: str) -> tuple:
+            req = urllib.request.Request(f"{BASE}{path}", method="HEAD")
+            with urllib.request.urlopen(req, timeout=10) as res:
+                return res.headers.get("Content-Length"), res.headers.get("Cache-Control")
+        with urllib.request.urlopen(f"{BASE}/", timeout=10) as res:
+            body_len = str(len(res.read()))
+        self.assertEqual(head("/"), (body_len, "no-cache"))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
