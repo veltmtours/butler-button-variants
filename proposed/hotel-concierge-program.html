@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&text=Ansh&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    BUTLER BUTTON — HOTEL CONCIERGE PROGRAM
@@ -144,31 +145,34 @@ a{color:inherit;text-decoration:none;}
 .hero-byline:hover .arr{transform:translateX(3px);}
 .hero-byline .arr{display:inline-block;transition:transform .2s var(--ease);}
 .mini-avatar{position:relative;width:30px;height:30px;border-radius:50%;overflow:hidden;flex:none;
-  background:var(--grad-primary);box-shadow:0 0 0 2px rgba(129,140,248,.35);}
+  background:var(--grad-primary);}
 .mini-avatar img,.founder-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
 .mini-avatar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   font-family:var(--serif);font-size:.72rem;font-weight:700;color:var(--white);letter-spacing:.02em;}
 
 /* Founder */
 .founder-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:4.5rem;align-items:center;}
-.founder-photo{position:relative;aspect-ratio:1/1;max-width:380px;margin:0 auto;border-radius:50%;overflow:hidden;
-  background:var(--grad-primary);box-shadow:0 0 0 10px var(--indigo-tint),0 0 0 11px rgba(79,70,229,.18),var(--glow-card),var(--shadow-xl);}
+.founder-photo{position:relative;width:100%;aspect-ratio:1/1;max-width:360px;margin:0 auto;border-radius:50%;overflow:hidden;
+  background:var(--grad-primary);}
 .founder-mono{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:var(--serif);font-size:clamp(4rem,9vw,7rem);font-weight:700;color:rgba(255,255,255,.92);letter-spacing:-.02em;
-  background:radial-gradient(420px 320px at 30% 20%,rgba(255,255,255,.22),transparent 60%);}
-.founder-cap{margin:1.9rem 0 0;font-size:.86rem;color:var(--gray-500);text-align:center;}
-.founder-cap b{color:var(--near-black);font-weight:600;}
-.light .founder-role{margin:.5rem 0 1.8rem;font-size:1rem;color:var(--gray-500);font-weight:500;}
-.founder-quote{margin:0 0 1.6rem;padding:.2rem 0 .2rem 1.4rem;border-left:3px solid var(--indigo);
-  font-family:var(--serif);font-style:italic;font-size:clamp(1.25rem,2.2vw,1.7rem);line-height:1.4;
-  color:var(--near-black);letter-spacing:-.015em;}
-.founder-facts{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.6rem 0 1.8rem;padding:0;list-style:none;}
+  font-family:var(--serif);font-size:clamp(4rem,9vw,7rem);font-weight:700;color:rgba(255,255,255,.92);letter-spacing:-.02em;}
+#founder .h2{font-size:clamp(1.85rem,3.3vw,2.75rem);}
+.founder-name{margin:1.1rem 0 1.6rem;font-size:1rem;color:var(--gray-500);font-weight:500;}
+.founder-name b{font-family:var(--serif);font-size:1.35rem;font-weight:700;color:var(--near-black);letter-spacing:-.01em;}
+.founder-quote{margin:0 0 1.5rem;padding:.1rem 0 .1rem 1.2rem;border-left:3px solid var(--indigo);
+  font-family:var(--serif);font-style:italic;font-size:clamp(1.12rem,1.75vw,1.38rem);line-height:1.45;
+  color:var(--near-black);letter-spacing:-.01em;}
+.founder-bio p{margin:0 0 .55rem;font-size:1.02rem;line-height:1.6;color:var(--body-gray);max-width:38rem;}
+.founder-sign{display:block;margin:.6rem 0 0;font-family:'Mrs Saint Delafield',cursive;font-size:3rem;line-height:1;
+  color:var(--indigo-hover);}
+.founder-facts{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.4rem 0 1.8rem;padding:0;list-style:none;}
 .founder-facts li{padding:.5rem 1rem;border-radius:var(--r-pill);background:var(--indigo-tint);
   color:var(--indigo-hover);font-size:.86rem;font-weight:600;}
+.founder-ctas{display:flex;flex-wrap:wrap;align-items:center;gap:1.4rem;}
 .founder-link{display:inline-flex;align-items:center;gap:.4rem;font-weight:600;color:var(--indigo);}
 .founder-link:hover{color:var(--indigo-hover);text-decoration:underline;text-underline-offset:3px;}
-@media(max-width:900px){.founder-grid{grid-template-columns:1fr;gap:2.75rem;}.founder-photo{max-width:280px;margin:0;}.founder-cap{display:none;}}
-@media(max-width:640px){.founder-photo{max-width:220px;margin-left:10px;}}
+@media(max-width:900px){.founder-grid{grid-template-columns:1fr;gap:2.5rem;}.founder-photo{max-width:240px;margin:0;}}
+@media(max-width:640px){.founder-photo{max-width:180px;}}
 
 /* Signature: guest thread — scenario radius 20px */
 .thread{background:rgba(17,17,17,.74);border:1px solid rgba(255,255,255,.09);
@@ -615,7 +619,7 @@ a{color:inherit;text-decoration:none;}
       <p class="hero-note"><span class="dot"></span> US$99 a month per property. No setup fee, no hardware.</p>
       <a class="hero-byline" href="#founder">
         <span class="mini-avatar" aria-hidden="true"><span>AD</span><img src="assets/ansh-dixit.jpg" alt="" onerror="this.remove()"></span>
-        <span>Founded by <b>Ansh Dixit</b>, 8 years in business aviation <span class="arr">&rarr;</span></span>
+        <span>Founded by <b>Ansh Dixit</b> <span class="arr">&rarr;</span></span>
       </a>
     </div>
 
@@ -1101,26 +1105,31 @@ a{color:inherit;text-decoration:none;}
 </section>
 
 <!-- FOUNDER -->
-<section class="section lighter light" id="founder" aria-labelledby="founder-name">
+<section class="section lighter light" id="founder" aria-labelledby="founder-head">
   <div class="wrap founder-grid">
-    <figure class="reveal" style="margin:0;">
-      <div class="founder-photo">
-        <span class="founder-mono" aria-hidden="true">AD</span>
-        <img src="assets/ansh-dixit.jpg" alt="Ansh Dixit, Founder and CEO of Butler Button" width="400" height="400" loading="lazy" onerror="this.remove()">
-      </div>
-      <figcaption class="founder-cap"><b>Ansh Dixit</b> &middot; Founder and CEO</figcaption>
-    </figure>
+    <div class="founder-photo reveal">
+      <span class="founder-mono" aria-hidden="true">AD</span>
+      <img src="assets/ansh-dixit.jpg" alt="Ansh Dixit, Founder &amp; CEO of Butler Button" width="400" height="400" loading="lazy" onerror="this.remove()">
+    </div>
     <div class="reveal">
       <span class="eyebrow" style="color:var(--indigo);margin-bottom:1rem;">Meet the founder</span>
-      <h2 class="h2" id="founder-name">Ansh Dixit</h2>
-      <p class="founder-role">Founder and CEO &middot; VELTM, Butler Button</p>
-      <blockquote class="founder-quote">&ldquo;Thirty thousand kilometers across India showed me the traveler is always the one chasing. Butler Button exists so you just message &mdash; and it's handled.&rdquo;</blockquote>
-      <p class="sub" style="color:var(--body-gray);margin:0;">Ansh Dixit spent 8 years in business aviation, where every delay and schedule change is handled before the client notices. Ansh founded VELTM to give every traveler that standard of care, and built Butler Button so hotels can offer it to every guest by text message.</p>
+      <h2 class="h2" id="founder-head">Built by someone who's lived travel from the inside.</h2>
+      <p class="founder-name"><b>Ansh Dixit</b> &middot; Founder &amp; CEO</p>
+      <blockquote class="founder-quote">&ldquo;Somewhere along 30,000 km across India I noticed the traveler was always the one chasing &mdash; hotel, driver, airline. VELTM exists so you just message, and it's handled.&rdquo;</blockquote>
+      <div class="founder-bio">
+        <p>When a trip breaks, the traveler is usually left to fix it alone.</p>
+        <p>Ansh spent 8 years in business aviation, where disruption is handled before the client notices. He has handled the extreme cases himself: diverted flights, natural disasters, hundreds of passengers and crew at once.</p>
+        <p>Butler Button brings that standard to hotels, BnBs and vacation rentals, by text.</p>
+      </div>
+      <span class="founder-sign" aria-hidden="true">Ansh</span>
       <ul class="founder-facts">
-        <li>8 years in business aviation</li>
-        <li>30,000 km across India</li>
+        <li>Diversions handled from Seattle to Papeete</li>
+        <li>Building since 2023</li>
       </ul>
-      <a class="founder-link" href="https://www.linkedin.com/in/anshdixitt" target="_blank" rel="noopener noreferrer">Connect with Ansh on LinkedIn <span aria-hidden="true">&#8599;</span></a>
+      <div class="founder-ctas">
+        <a class="btn btn-primary" href="mailto:ansh@butlerbutton.co">Email Ansh</a>
+        <a class="founder-link" href="https://www.linkedin.com/in/anshdixitt" target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">&#8599;</span></a>
+      </div>
     </div>
   </div>
 </section>
@@ -1171,6 +1180,7 @@ a{color:inherit;text-decoration:none;}
       <div class="foot-contact">
         <a href="mailto:partners@butlerbutton.co">partners@butlerbutton.co</a>
         <a href="https://www.butlerbutton.co">butlerbutton.co</a>
+        <a href="mailto:ansh@butlerbutton.co">ansh@butlerbutton.co</a>
         <a href="https://www.linkedin.com/in/anshdixitt" target="_blank" rel="noopener noreferrer">Ansh Dixit on LinkedIn</a>
       </div>
     </div>
