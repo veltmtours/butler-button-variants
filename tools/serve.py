@@ -8,6 +8,9 @@ Local dev server for butler-button-variants.
   (`*.app.github.dev`) or any other origin during local preview.
 - Handles `/forms/request` — the demo / 15-minute-meeting forms. See
   tools/request_forms.py for the SMTP_* configuration it needs.
+- Handles `/booking/slots` and `/booking/book` — picking a time for a demo
+  call and putting it on the team's Google Calendar with a Meet link. See
+  tools/booking.py; it stays off until the GOOGLE_* variables are set.
 
 Usage:
     python3 tools/serve.py [port]   # default 8000
@@ -26,9 +29,22 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import request_forms  # noqa: E402
 
+# Call booking is an extra. Whatever goes wrong loading it, the site and the
+# request forms must still come up; the page then just keeps using its form.
+try:
+    import booking  # noqa: E402
+except Exception as _exc:  # noqa: BLE001
+    booking = None
+    print(f"[booking] disabled - tools/booking.py did not load: "
+          f"{type(_exc).__name__}: {_exc}", file=sys.stderr, flush=True)
+
 SUPABASE_BASE = "https://glhbwpfkykycexyygwjj.supabase.co/functions/v1"
 API_PREFIX = "/api/"
 FORMS_PATH = "/forms/request"
+BOOKING_SLOTS_PATH = "/booking/slots"
+BOOKING_BOOK_PATH = "/booking/book"
+# Same-origin JSON endpoints: all three share the form's origin rules.
+JSON_PATHS = (FORMS_PATH, BOOKING_SLOTS_PATH, BOOKING_BOOK_PATH)
 
 # Which directory to serve as the web root, and which file to serve for "/".
 # Defaults keep local dev unchanged (repo root + index.html). Production
@@ -88,7 +104,7 @@ class Handler(SimpleHTTPRequestHandler):
         if origin and form_origin_allowed(origin):
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Access-Control-Max-Age", "86400")
 
@@ -98,7 +114,7 @@ class Handler(SimpleHTTPRequestHandler):
             self._send_cors()
             self.end_headers()
             return
-        if self.path.split("?")[0] == FORMS_PATH:
+        if self.path.split("?")[0] in JSON_PATHS:
             self.send_response(204)
             self._send_form_cors()
             self.end_headers()
@@ -114,8 +130,15 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path.startswith(API_PREFIX):
             self._proxy("POST")
             return
-        if self.path.split("?")[0] == FORMS_PATH:
+        route = self.path.split("?")[0]
+        if route == FORMS_PATH:
             self._handle_form()
+            return
+        if route == BOOKING_BOOK_PATH:
+            self._handle_booking_book()
+            return
+        if route == BOOKING_SLOTS_PATH:
+            self._send_form_json(405, {"success": False, "error": "method_not_allowed"})
             return
         self.send_error(405, "Method Not Allowed")
 
@@ -123,8 +146,12 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path.startswith(API_PREFIX):
             self._proxy("GET")
             return
-        if self.path.split("?")[0] == FORMS_PATH:
+        route = self.path.split("?")[0]
+        if route in (FORMS_PATH, BOOKING_BOOK_PATH):
             self._send_form_json(405, {"success": False, "error": "method_not_allowed"})
+            return
+        if route == BOOKING_SLOTS_PATH:
+            self._handle_booking_slots()
             return
         # Serve the configured landing page for the site root.
         if self.path in ("", "/"):
@@ -139,9 +166,13 @@ class Handler(SimpleHTTPRequestHandler):
 
     # ── Demo / meeting request forms ────────────────────────────────────
     def _client_ip(self) -> str:
+        # Heroku's router appends the address that actually connected to it,
+        # so the LAST entry is the trustworthy one. Everything before it came
+        # from the sender, who could otherwise dodge the per-IP limits by
+        # inventing a new first entry on every request.
         forwarded = self.headers.get("X-Forwarded-For", "")
         if forwarded:
-            return forwarded.split(",")[0].strip()
+            return forwarded.split(",")[-1].strip()
         return self.client_address[0] if self.client_address else ""
 
     def _send_form_json(self, status: int, payload: dict) -> None:
@@ -154,30 +185,79 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _handle_form(self) -> None:
+    def _origin_refused(self) -> bool:
+        """Answer 403 and return True when a foreign page is calling."""
         origin = self.headers.get("Origin")
         if origin and not form_origin_allowed(origin):
             self._send_form_json(403, {"success": False, "error": "origin_not_allowed"})
-            return
+            return True
+        return False
 
-        length = int(self.headers.get("Content-Length") or 0)
+    def _read_form_json(self):
+        """The posted JSON body, or None once an error response has been sent."""
+        if self._origin_refused():
+            return None
+
+        malformed = {"success": False, "error": "invalid_json", "message": "Malformed request."}
+        try:
+            length = int(self.headers.get("Content-Length") or 0)
+        except ValueError:
+            length = -1
+        if length < 0:
+            self._send_form_json(400, malformed)
+            return None
         if length > request_forms.MAX_BODY_BYTES:
             self._send_form_json(413, {"success": False, "error": "payload_too_large"})
-            return
+            return None
 
         try:
-            payload = json.loads(self.rfile.read(length) or b"{}")
+            return json.loads(self.rfile.read(length) or b"{}")
         except (ValueError, UnicodeDecodeError):
-            self._send_form_json(
-                400, {"success": False, "error": "invalid_json", "message": "Malformed request."}
-            )
-            return
+            self._send_form_json(400, malformed)
+            return None
 
+    def _handle_form(self) -> None:
+        payload = self._read_form_json()
+        if payload is None:
+            return
         try:
             status, response = request_forms.handle(payload, self._client_ip())
         except Exception as exc:  # noqa: BLE001
             print(f"[forms] unhandled error: {type(exc).__name__}: {exc}", file=sys.stderr, flush=True)
             status, response = 500, {"success": False, "error": "server_error"}
+        self._send_form_json(status, response)
+
+    # ── Demo-call booking ───────────────────────────────────────────────
+    # Any answer other than a success sends the page back to its plain request
+    # form, so a booking problem never costs a lead.
+    _BOOKING_OFF = {"success": False, "error": "booking_not_configured"}
+
+    def _handle_booking_slots(self) -> None:
+        if self._origin_refused():
+            return
+        # "Not switched on" is a normal answer here, so not an error status.
+        status, response = 200, self._BOOKING_OFF
+        if booking is not None:
+            try:
+                status, response = booking.handle_slots()
+            except Exception as exc:  # noqa: BLE001
+                print(f"[booking] unhandled error: {type(exc).__name__}: {exc}",
+                      file=sys.stderr, flush=True)
+                status, response = 500, {"success": False, "error": "server_error"}
+        self._send_form_json(status, response)
+
+    def _handle_booking_book(self) -> None:
+        payload = self._read_form_json()
+        if payload is None:
+            return
+        status, response = 503, self._BOOKING_OFF
+        if booking is not None:
+            try:
+                status, response = booking.handle_book(payload, self._client_ip())
+            except Exception as exc:  # noqa: BLE001
+                print(f"[booking] unhandled error: {type(exc).__name__}: {exc}",
+                      file=sys.stderr, flush=True)
+                status, response = 500, {"success": False, "error": "server_error"}
         self._send_form_json(status, response)
 
     def _proxy(self, method: str) -> None:
@@ -235,6 +315,10 @@ def main() -> None:
           f"from {request_forms.FROM_EMAIL} [{request_forms.transport_summary()}])")
     for warning in request_forms.config_warnings():
         print(f"  [forms] WARNING: {warning}", file=sys.stderr, flush=True)
+    if booking is not None:
+        print(f"  booking: {BOOKING_SLOTS_PATH}, {BOOKING_BOOK_PATH} -> {booking.summary()}")
+        for warning in booking.config_warnings():
+            print(f"  [booking] WARNING: {warning}", file=sys.stderr, flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

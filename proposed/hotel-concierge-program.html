@@ -589,6 +589,40 @@ a{color:inherit;text-decoration:none;}
 .rq-id span{font-size:.68rem;text-transform:uppercase;letter-spacing:.16em;font-weight:600;color:var(--text-mute);}
 .rq-id b{font-family:var(--mono);font-size:1.02rem;letter-spacing:.06em;color:var(--indigo-light);}
 
+/* Slot picker - the booking view of the request modal. Open times come from
+   /booking/slots (tools/booking.py). The choice is held in JS, not an input. */
+.rq-slots{gap:.7rem;}
+.rq-lab{font-size:.76rem;font-weight:600;letter-spacing:.02em;color:rgba(255,255,255,.72);}
+.rq-lab .req{color:var(--indigo-light);}
+.rq-slots-msg{margin:0;padding:.8rem 0;font-size:.88rem;color:rgba(255,255,255,.6);}
+.rq-slots-msg[hidden],.rq-days:empty,.rq-times:empty{display:none;}
+.rq-days{display:flex;gap:.5rem;overflow-x:auto;margin:0 -.2rem;padding:.2rem .2rem .65rem;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent;}
+.rq-day,.rq-time{font-family:inherit;color:var(--white);cursor:pointer;border-radius:12px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.14);
+  transition:border-color .3s var(--ease),background .3s var(--ease),box-shadow .3s var(--ease);}
+.rq-day{flex:none;min-width:4.5rem;display:flex;flex-direction:column;align-items:center;gap:.2rem;
+  padding:.6rem .7rem;}
+.rq-day small{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
+  color:rgba(255,255,255,.55);}
+.rq-day b{font-size:.9rem;font-weight:600;white-space:nowrap;}
+.rq-times{display:grid;grid-template-columns:repeat(auto-fill,minmax(5.5rem,1fr));gap:.5rem;}
+.rq-time{padding:.65rem .3rem;font-size:.86rem;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.rq-day:hover,.rq-time:hover{border-color:var(--indigo-light);background:rgba(255,255,255,.08);}
+.rq-day:focus-visible,.rq-time:focus-visible{outline:none;border-color:var(--indigo-light);
+  box-shadow:0 0 0 3px rgba(129,140,248,.3);}
+.rq-day[aria-pressed="true"],.rq-time[aria-pressed="true"]{background:var(--grad-primary);
+  border-color:transparent;}
+.rq-day[aria-pressed="true"] small{color:rgba(255,255,255,.85);}
+.rq-link{align-self:flex-start;padding:0;border:0;border-radius:4px;background:none;
+  font-family:inherit;font-size:.78rem;color:var(--indigo-light);cursor:pointer;
+  text-decoration:underline;text-underline-offset:2px;}
+.rq-link:focus-visible{outline:2px solid var(--indigo-light);outline-offset:3px;}
+.rq-done .rq-when{margin-bottom:.6rem;font-family:var(--serif);font-size:1.12rem;line-height:1.4;
+  color:var(--white);}
+.rq-done .rq-when[hidden],.rq-done .rq-meet[hidden]{display:none;}
+.rq-done .rq-meet a{color:var(--indigo-light);text-underline-offset:2px;overflow-wrap:anywhere;}
+
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
     transition-duration:.01ms!important;scroll-behavior:auto!important;}
@@ -1183,7 +1217,7 @@ a{color:inherit;text-decoration:none;}
       </div>
       <p class="reveal" style="margin:0 0 2rem;font-family:var(--serif);font-style:italic;font-size:clamp(1rem,1.8vw,1.22rem);color:rgba(255,255,255,.92);">Start with a live demo, then go live within a week. One flat price of US$99 a month per property, with everything included from your first day.</p>
       <div class="demo-cta">
-        <button type="button" class="btn btn-white" data-request="demo">Request a demo</button>
+        <button type="button" class="btn btn-white" data-request="demo">Book a demo</button>
         <button type="button" class="btn btn-ghost" data-request="meeting">Request a 15-minute meeting</button>
       </div>
     </div>
@@ -1233,6 +1267,18 @@ a{color:inherit;text-decoration:none;}
         </div>
 
         <div class="rq-grid">
+          <!-- Slot picker: the booking view only. Buttons and JS state, with
+               no named inputs - every named input on this form is sent as a
+               lead field, and the chosen time travels on its own. -->
+          <div class="rq-f rq-f--full rq-slots" data-only="book" id="rqSlots" hidden>
+            <span class="rq-lab">Pick a time <span class="req">*</span></span>
+            <p class="rq-slots-msg" id="rqSlotsMsg" hidden>Loading open times...</p>
+            <div class="rq-days" id="rqDays" role="group" aria-label="Choose a day"></div>
+            <div class="rq-times" id="rqTimes" role="group" aria-label="Choose a time"></div>
+            <span class="hint" id="rqSlotsNote">30 minutes on Google Meet.</span>
+            <button type="button" class="rq-link" id="rqNoTime">None of these times work? Send a request instead</button>
+          </div>
+
           <div class="rq-f">
             <label for="rq-name">Full name <span class="req">*</span></label>
             <input type="text" id="rq-name" name="name" autocomplete="name" placeholder="Ana Ferreira" required>
@@ -1258,7 +1304,7 @@ a{color:inherit;text-decoration:none;}
             <input type="text" id="rq-location" name="location" placeholder="Boston, MA, USA" required>
           </div>
 
-          <div class="rq-f" data-only="demo">
+          <div class="rq-f" data-only="demo book">
             <label for="rq-property_type">Property type</label>
             <select id="rq-property_type" name="property_type">
               <option value="">Select one</option>
@@ -1270,7 +1316,7 @@ a{color:inherit;text-decoration:none;}
               <option>Other</option>
             </select>
           </div>
-          <div class="rq-f" data-only="demo">
+          <div class="rq-f" data-only="demo book">
             <label for="rq-rooms">Rooms or keys</label>
             <input type="number" id="rq-rooms" name="rooms" min="1" max="100000" step="1" inputmode="numeric" placeholder="48">
           </div>
@@ -1304,7 +1350,7 @@ a{color:inherit;text-decoration:none;}
 
         <div class="rq-foot">
           <button type="submit" class="btn btn-primary" id="rqSubmit">Send request</button>
-          <p class="rq-note">Goes straight to partners@butlerbutton.co. You will get a confirmation email with your request ID, and a reply within one business day.</p>
+          <p class="rq-note" id="rqNote">Goes straight to partners@butlerbutton.co. You will get a confirmation email with your request ID, and a reply within one business day.</p>
         </div>
       </form>
     </div>
@@ -1312,8 +1358,10 @@ a{color:inherit;text-decoration:none;}
     <div class="rq-done" id="rqDone" hidden>
       <div class="rq-tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
       <h2 id="rqDoneTitle">Request received.</h2>
+      <p class="rq-when" id="rqDoneWhen" hidden></p>
       <p id="rqDoneText">Our partnerships team has it, and a confirmation is on its way to your inbox. Quote this reference in any reply.</p>
-      <div class="rq-id"><span>Your request ID</span><b id="rqDoneId">-</b></div>
+      <p class="rq-meet" id="rqDoneMeet" hidden>Google Meet: <a id="rqDoneMeetLink" href="#" target="_blank" rel="noopener"></a></p>
+      <div class="rq-id"><span id="rqDoneIdLabel">Your request ID</span><b id="rqDoneId">-</b></div>
       <div><button type="button" class="btn btn-ghost" id="rqDoneClose">Close</button></div>
     </div>
   </div>
@@ -1332,11 +1380,20 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
 </script>
 
 <script>
-/* Request modal — demo + 15-minute meeting.
-   Posts to the Veltm butler-demo-request Edge Function, which emails the lead
-   to partners@butlerbutton.co (Reply-To the requester), sends the requester a
-   confirmation carrying the request ID, and stores the lead. Nothing is
-   emailed from this site.
+/* Request modal — book a demo, request a demo, request a 15-minute meeting.
+
+   Booking a demo: this site's own server (tools/serve.py, tools/booking.py)
+   lists the open times on the team's Google Calendar at /booking/slots and
+   creates the event, with its Meet link, at /booking/book; Google emails the
+   invitation. That only works once the Google account is connected, so the
+   booking view is an upgrade and never a requirement: whenever the open times
+   cannot be had, "Book a demo" opens the plain demo request, exactly as it
+   did before booking existed.
+
+   Every request, booked or not, is posted to the Veltm butler-demo-request
+   Edge Function, which emails the lead to partners@butlerbutton.co (Reply-To
+   the requester), sends the requester a confirmation carrying the request ID,
+   and stores the lead.
 
    The anon key is public by design (it already ships in veltmtours.com's
    front-end JS); the function is protected server-side by an origin
@@ -1359,6 +1416,12 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   })();
   var TEAM_EMAIL = 'partners@butlerbutton.co';
 
+  // Booking lives on this site's own origin.
+  var BOOKING = { slots: '/booking/slots', book: '/booking/book' };
+  // The inputs sent with a booking. The server reads these and no others.
+  var BOOK_FIELDS = ['name', 'email', 'phone', 'company', 'role', 'location',
+                     'property_type', 'rooms', 'message'];
+
   // Our input names -> the field names the API expects.
   var FIELD_MAP = {
     name: 'full_name',
@@ -1372,13 +1435,26 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     message: 'notes'
   };
 
+  var REQUEST_NOTE = 'Goes straight to partners@butlerbutton.co. You will get a confirmation email with your request ID, and a reply within one business day.';
+
   var COPY = {
+    book: {
+      kicker: 'Book a demo',
+      title: 'Pick a time for your demo.',
+      lede: 'Choose a time that suits you and we will send a calendar invitation with a Google Meet link straight away.',
+      messageLabel: 'What would you like the demo to cover?',
+      submit: 'Book the demo',
+      note: 'You will get a calendar invitation with the Google Meet link. To change the time, just reply to it.',
+      doneTitle: 'Your demo is booked.',
+      doneText: 'A calendar invitation with the Google Meet link is on its way to your inbox.'
+    },
     demo: {
       kicker: 'Request a demo',
       title: 'See Butler Button on your property.',
       lede: 'Tell us a little about the property and we will come back with a walkthrough tailored to it.',
       messageLabel: 'What would you like the demo to cover?',
       submit: 'Send demo request',
+      note: REQUEST_NOTE,
       doneTitle: 'Demo request received.',
       doneText: 'Our partnerships team has it, and a confirmation is on its way to your inbox. Quote this reference in any reply.'
     },
@@ -1388,6 +1464,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
       lede: 'Pick a window that suits you. We will confirm by email with a calendar invite and a video link.',
       messageLabel: 'Anything you would like to cover on the call?',
       submit: 'Request the meeting',
+      note: REQUEST_NOTE,
       doneTitle: 'Meeting request received.',
       doneText: 'Our partnerships team has it and will confirm a slot by email. Quote this reference in any reply.'
     }
@@ -1400,6 +1477,10 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   var form   = document.getElementById('rqForm');
   var alertEl = document.getElementById('rqAlert');
   var submitBtn = document.getElementById('rqSubmit');
+  var slotsBox = document.getElementById('rqSlots');
+  var daysEl   = document.getElementById('rqDays');
+  var timesEl  = document.getElementById('rqTimes');
+  var slotsMsg = document.getElementById('rqSlotsMsg');
   if (!back || !form) return;
 
   var REQUIRED = ['name', 'email', 'company', 'location'];
@@ -1407,6 +1488,14 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   var currentType = 'demo';
   var lastFocus = null;
   var sending = false;
+  var opens = 0;
+
+  // Open times. 'idle' -> 'loading' -> 'ready' (times to offer) or 'off'
+  // (none to offer, or booking unavailable: use the request form).
+  var slots = { state: 'idle', at: 0, days: [], start: null, minutes: 30,
+                zone: 'America/New_York', pending: null };
+  var visitorZone;
+  try { visitorZone = Intl.DateTimeFormat().resolvedOptions().timeZone || undefined; } catch (e) {}
 
   function field(name) { return form.elements[name]; }
   function wrapOf(el) { return el.closest ? el.closest('.rq-f') : null; }
@@ -1431,6 +1520,11 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     w.appendChild(m);
   }
 
+  function showAlert(text) {
+    alertEl.hidden = false;
+    alertEl.textContent = text;
+  }
+
   function applyType(type) {
     currentType = COPY[type] ? type : 'demo';
     var c = COPY[currentType];
@@ -1438,17 +1532,182 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     document.getElementById('rqTitle').textContent = c.title;
     document.getElementById('rqLede').textContent = c.lede;
     document.getElementById('rq-message-label').textContent = c.messageLabel;
+    document.getElementById('rqNote').textContent = c.note;
     submitBtn.textContent = c.submit;
+    // data-only lists the views a block belongs to, space-separated.
     form.querySelectorAll('[data-only]').forEach(function (el) {
-      var on = el.getAttribute('data-only') === currentType;
+      var on = (' ' + el.getAttribute('data-only') + ' ').indexOf(' ' + currentType + ' ') !== -1;
       el.hidden = !on;
       el.querySelectorAll('input,select,textarea').forEach(function (i) { i.disabled = !on; });
     });
   }
 
+  function focusFirst() {
+    setTimeout(function () {
+      // In the booking view the day buttons come first; focusing a text field
+      // there would also throw up the keyboard over the times on a phone.
+      var target = currentType === 'book'
+        ? (daysEl.querySelector('[aria-pressed="true"]') || daysEl.querySelector('button'))
+        : null;
+      target = target || field('name');
+      if (target) target.focus();
+    }, 40);
+  }
+
+  /* ── Open times ──────────────────────────────────────────────────────── */
+
+  function formatter(options, locale) {
+    options.timeZone = visitorZone;
+    try { return new Intl.DateTimeFormat(locale, options); }
+    catch (e) { delete options.timeZone; return new Intl.DateTimeFormat(locale, options); }
+  }
+
+  // Days are the VISITOR's calendar days, not UTC's and not New York's: half
+  // past six on a Friday evening in New York is Saturday morning in Sydney.
+  // Every slot is placed and labelled from its own instant, so a clock change
+  // part-way through the list, theirs or ours, cannot shift it.
+  function groupSlots(isoList, timeZone) {
+    var dayKey = new Intl.DateTimeFormat('en-CA', {
+      timeZone: timeZone, year: 'numeric', month: '2-digit', day: '2-digit'
+    });
+    var days = [], byKey = {};
+    isoList.forEach(function (iso) {
+      var when = new Date(iso);
+      if (isNaN(when.getTime())) return;
+      var key = dayKey.format(when);
+      if (!byKey[key]) {
+        byKey[key] = { key: key, first: when, slots: [] };
+        days.push(byKey[key]);
+      }
+      byKey[key].slots.push({ iso: iso, when: when });
+    });
+    return days;
+  }
+
+  function loadSlots() {
+    if (slots.pending) return slots.pending;
+    if (!window.fetch) { slots.state = 'off'; slots.at = Date.now(); return Promise.resolve('off'); }
+    slots.state = 'loading';
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 6000);
+    slots.pending = fetch(BOOKING.slots, {
+      headers: { 'Accept': 'application/json' },
+      signal: ctrl ? ctrl.signal : undefined
+    })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .catch(function () { return null; })
+      .then(function (json) {
+        clearTimeout(timer);
+        var days = [];
+        try {
+          if (json && json.success && json.slots && json.slots.length) {
+            days = groupSlots(json.slots, visitorZone);
+          }
+        } catch (e) { days = []; }
+        slots.pending = null;
+        slots.at = Date.now();
+        slots.days = days;
+        slots.start = null;
+        slots.minutes = (json && json.minutes) || 30;
+        slots.zone = (json && json.timezone) || 'America/New_York';
+        slots.state = days.length ? 'ready' : 'off';
+        return slots.state;
+      });
+    return slots.pending;
+  }
+
+  function press(container, attr, value) {
+    container.querySelectorAll('button').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute(attr) === value ? 'true' : 'false');
+    });
+  }
+
+  function pickTime(iso) {
+    slots.start = iso;
+    press(timesEl, 'data-start', iso);
+    slotsBox.classList.remove('bad');
+    var m = slotsBox.querySelector('.msg-err');
+    if (m) m.remove();
+  }
+
+  function pickDay(key) {
+    press(daysEl, 'data-day', key);
+    timesEl.innerHTML = '';
+    var clock = formatter({ hour: 'numeric', minute: '2-digit' });
+    var keep = false;
+    slots.days.forEach(function (day) {
+      if (day.key !== key) return;
+      day.slots.forEach(function (slot) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'rq-time';
+        b.setAttribute('data-start', slot.iso);
+        b.setAttribute('aria-pressed', 'false');
+        b.textContent = clock.format(slot.when);
+        b.addEventListener('click', function () { pickTime(slot.iso); });
+        timesEl.appendChild(b);
+        if (slot.iso === slots.start) keep = true;
+      });
+    });
+    if (keep) press(timesEl, 'data-start', slots.start); else slots.start = null;
+  }
+
+  function renderSlots() {
+    daysEl.innerHTML = '';
+    var weekday = formatter({ weekday: 'short' });
+    var date = formatter({ day: 'numeric', month: 'short' });
+    slots.days.forEach(function (day) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'rq-day';
+      b.setAttribute('data-day', day.key);
+      b.setAttribute('aria-pressed', 'false');
+      var small = document.createElement('small');
+      small.textContent = weekday.format(day.first);
+      var strong = document.createElement('b');
+      strong.textContent = date.format(day.first);
+      b.appendChild(small);
+      b.appendChild(strong);
+      b.addEventListener('click', function () { pickDay(day.key); });
+      daysEl.appendChild(b);
+    });
+    slots.start = null;
+    pickDay(slots.days.length ? slots.days[0].key : null);
+    document.getElementById('rqSlotsNote').textContent =
+      slots.minutes + ' minutes on Google Meet. Times are shown in your time zone' +
+      (visitorZone ? ' (' + visitorZone.replace(/_/g, ' ') + ')' : '') + '.';
+  }
+
+  function showBooking() {
+    applyType('book');
+    slotsMsg.hidden = true;
+    renderSlots();
+  }
+
+  // "Book a demo": the booking view when there are open times to offer, the
+  // plain demo request otherwise. A list more than five minutes old is fetched
+  // again, and a failed attempt is retried after a minute.
+  function openBooking() {
+    var age = Date.now() - slots.at;
+    if (slots.state === 'ready' && age < 300000) { showBooking(); focusFirst(); return; }
+    if (slots.state === 'off' && age < 60000) { applyType('demo'); focusFirst(); return; }
+
+    applyType('book');
+    daysEl.innerHTML = '';
+    timesEl.innerHTML = '';
+    slotsMsg.hidden = false;
+    var opened = opens;
+    loadSlots().then(function (state) {
+      // Closed, reopened or switched to another view while this was loading.
+      if (back.hidden || opens !== opened || currentType !== 'book') return;
+      if (state === 'ready') showBooking(); else applyType('demo');
+      focusFirst();
+    });
+  }
+
   function openModal(type, opener) {
     lastFocus = opener || document.activeElement;
-    applyType(type);
+    opens += 1;
     clearErrors();
     body.hidden = false;
     done.hidden = true;
@@ -1458,13 +1717,13 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     document.body.style.overflow = 'hidden';
 
     var tz = field('timezone');
-    if (tz && !tz.value) {
-      try { tz.value = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) {}
-    }
+    if (tz && !tz.value) tz.value = visitorZone || '';
     var d = field('preferred_date');
     if (d && !d.min) d.min = new Date().toISOString().slice(0, 10);
 
-    setTimeout(function () { var n = field('name'); if (n) n.focus(); }, 40);
+    if (type === 'demo') { openBooking(); return; }
+    applyType(type);
+    focusFirst();
   }
 
   function closeModal() {
@@ -1504,6 +1763,10 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   function validate() {
     clearErrors();
     var bad = null;
+    if (currentType === 'book' && !slots.start) {
+      markError(daysEl, 'Pick a time');
+      bad = timesEl.querySelector('button') || daysEl.querySelector('button');
+    }
     REQUIRED.forEach(function (n) {
       var el = field(n);
       if (!el || el.disabled) return;
@@ -1529,7 +1792,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
       'Role: ' + (data.role || ''),
       'City & country: ' + (data.city_country || '')
     ];
-    if (currentType === 'demo') {
+    if (currentType !== 'meeting') {
       lines.push('Property type: ' + (data.property_type || ''));
       lines.push('Rooms or keys: ' + (data.rooms || ''));
     }
@@ -1588,6 +1851,193 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     return 'We could not send that just now.';
   }
 
+  function readJson(res) {
+    return res.json()
+      .catch(function () { return {}; })
+      .then(function (json) { return { ok: res.ok, status: res.status, json: json }; });
+  }
+
+  // Send the lead to the Edge Function. `outlive` lets the request finish
+  // even if the tab is closed the moment a booking is confirmed.
+  function postLead(data, outlive) {
+    var options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': API.anon,
+        'Authorization': 'Bearer ' + API.anon
+      },
+      body: JSON.stringify(data)
+    };
+    if (outlive) options.keepalive = true;
+    return fetch(API.url, options).then(readJson);
+  }
+
+  // What the success panel shows. `booking` is the /booking/book answer, or
+  // null for a plain request.
+  function showDone(title, text, reference, booking) {
+    document.getElementById('rqDoneTitle').textContent = title;
+    document.getElementById('rqDoneText').textContent = text;
+    document.getElementById('rqDoneIdLabel').textContent =
+      booking ? 'Your booking reference' : 'Your request ID';
+    document.getElementById('rqDoneId').textContent = reference;
+
+    var when = document.getElementById('rqDoneWhen');
+    var meet = document.getElementById('rqDoneMeet');
+    var link = document.getElementById('rqDoneMeetLink');
+    when.hidden = true;
+    meet.hidden = true;
+    if (booking && booking.start) {
+      var from = new Date(booking.start);
+      var to = new Date(booking.end || (from.getTime() + slots.minutes * 60000));
+      var clock = formatter({ hour: 'numeric', minute: '2-digit' });
+      when.textContent =
+        formatter({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(from) +
+        ', ' + clock.format(from) + ' to ' +
+        formatter({ hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(to);
+      when.hidden = false;
+    }
+    if (booking && /^https:\/\//.test(booking.meet_url || '')) {
+      link.href = booking.meet_url;
+      link.textContent = booking.meet_url.replace(/^https:\/\//, '');
+      meet.hidden = false;
+    }
+
+    setBusy(false);
+    body.hidden = true;
+    done.hidden = false;
+    form.reset();
+    slots.start = null;
+    document.getElementById('rqDoneClose').focus();
+  }
+
+  // The plain request: the lead is the whole of it. `doneCopy` replaces the
+  // usual success wording when this is standing in for a failed booking.
+  function sendRequest(data, doneCopy) {
+    postLead(data)
+      .then(function (r) {
+        if (!r.ok || !r.json || !r.json.success || !r.json.request_id) {
+          var err = new Error(messageForStatus(r.status, r.json));
+          err.status = r.status;
+          err.reason = (r.json && (r.json.error || r.json.message)) || '';
+          throw err;
+        }
+        var c = doneCopy || COPY[currentType];
+        showDone(
+          c.doneTitle,
+          r.json.confirmation_sent === false && !doneCopy
+            ? 'Our partnerships team has it. Quote this reference in any reply.'
+            : c.doneText,
+          r.json.request_id,
+          null
+        );
+      })
+      // No auto-retry: a retry would create a duplicate lead. The button is
+      // re-enabled so the person can decide to try again themselves.
+      .catch(function (err) {
+        setBusy(false);
+        try { console.error('[bb-request]', err); } catch (e) {}
+        if (err.status === 400 && highlightFrom(err.reason)) {
+          showAlert(err.message);
+          return;
+        }
+        showFailure(data, err.message);
+      });
+  }
+
+  /* ── Booking ─────────────────────────────────────────────────────────── */
+
+  // The time as the team reads it: in the zone the calendar is kept in.
+  function teamTime(iso) {
+    try {
+      return new Intl.DateTimeFormat('en-US', {
+        timeZone: slots.zone, weekday: 'short', day: 'numeric', month: 'short',
+        year: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+      }).format(new Date(iso));
+    } catch (e) { return iso; }
+  }
+
+  function booked(answer, data, chosen) {
+    var lines = ['[Demo booked: ' + teamTime(answer.start || chosen) + ']',
+                 'Booking reference: ' + answer.booking_id];
+    if (answer.meet_url) lines.push('Google Meet: ' + answer.meet_url);
+    if (visitorZone) lines.push('Visitor time zone: ' + visitorZone);
+    data.notes = lines.join('\n') + (data.notes ? '\n\n' + data.notes : '');
+    // The call is booked whatever happens to this. It is the team's record of
+    // who booked: the invitation itself carries nothing the visitor typed.
+    // Sent once and never retried, like every lead.
+    postLead(data, true).catch(function (err) {
+      try { console.error('[bb-request] lead after booking', err); } catch (e) {}
+    });
+    slots.state = 'idle';   // that time is gone; fetch the list afresh next time
+    var c = COPY.book;
+    showDone(c.doneTitle, c.doneText, answer.booking_id, answer);
+  }
+
+  // Booking could not be completed online. The lead must not be lost with it,
+  // so the plain request goes out instead, carrying the time they wanted.
+  function requestInstead(data, chosen) {
+    data.notes = '[Requested time: ' + teamTime(chosen) + ' - could not be booked online]' +
+      (data.notes ? '\n\n' + data.notes : '');
+    applyType('demo');   // the form on screen now matches what is being sent
+    setBusy(true);
+    sendRequest(data, {
+      doneTitle: 'Request received.',
+      doneText: 'We could not confirm that time online, so our partnerships team will confirm it by email. Quote this reference in any reply.'
+    });
+  }
+
+  // Someone else took the time between the list loading and the click.
+  function slotGone() {
+    slots.state = 'idle';
+    loadSlots().then(function (state) {
+      setBusy(false);
+      if (state === 'ready') {
+        showBooking();
+        showAlert('That time has just been taken. Please pick another.');
+        focusFirst();
+      } else {
+        applyType('demo');
+        showAlert('There are no open times left right now. Send us a request and we will arrange one by email.');
+      }
+    });
+  }
+
+  function sendBooking(data) {
+    var chosen = slots.start;
+    var request = {
+      start: chosen,
+      timezone: visitorZone || '',
+      page: location.pathname,
+      company_website: val('company_website')   // honeypot, normally empty
+    };
+    BOOK_FIELDS.forEach(function (n) { request[n] = val(n); });
+
+    fetch(BOOKING.book, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request)
+    })
+      .then(readJson)
+      // Two handlers on one then(): a slip while drawing the confirmation
+      // must not be mistaken for a failed booking and sent again as a request.
+      .then(function (r) {
+        if (r.ok && r.json && r.json.success && r.json.booking_id) {
+          booked(r.json, data, chosen);
+        } else if (r.status === 409) {
+          slotGone();
+        } else if (r.status === 400) {
+          setBusy(false);
+          showAlert((r.json && r.json.message) || 'Please check the form and try again.');
+        } else {
+          requestInstead(data, chosen);
+        }
+      }, function (err) {
+        try { console.error('[bb-booking]', err); } catch (e) {}
+        requestInstead(data, chosen);
+      });
+  }
+
   form.addEventListener('submit', function (ev) {
     ev.preventDefault();
     // Enter in a text field bypasses the disabled button, and a second send
@@ -1596,53 +2046,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     if (!validate()) return;
     var data = collect();
     setBusy(true);
-
-    fetch(API.url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': API.anon,
-        'Authorization': 'Bearer ' + API.anon
-      },
-      body: JSON.stringify(data)
-    })
-      .then(function (res) {
-        return res.json()
-          .catch(function () { return {}; })
-          .then(function (json) { return { ok: res.ok, status: res.status, json: json }; });
-      })
-      .then(function (r) {
-        if (!r.ok || !r.json || !r.json.success || !r.json.request_id) {
-          var err = new Error(messageForStatus(r.status, r.json));
-          err.status = r.status;
-          err.reason = (r.json && (r.json.error || r.json.message)) || '';
-          throw err;
-        }
-        var c = COPY[currentType];
-        document.getElementById('rqDoneTitle').textContent = c.doneTitle;
-        document.getElementById('rqDoneText').textContent =
-          r.json.confirmation_sent === false
-            ? 'Our partnerships team has it. Quote this reference in any reply.'
-            : c.doneText;
-        document.getElementById('rqDoneId').textContent = r.json.request_id;
-        setBusy(false);
-        body.hidden = true;
-        done.hidden = false;
-        form.reset();
-        document.getElementById('rqDoneClose').focus();
-      })
-      // No auto-retry: a retry would create a duplicate lead. The button is
-      // re-enabled so the person can decide to try again themselves.
-      .catch(function (err) {
-        setBusy(false);
-        try { console.error('[bb-request]', err); } catch (e) {}
-        if (err.status === 400 && highlightFrom(err.reason)) {
-          alertEl.hidden = false;
-          alertEl.textContent = err.message;
-          return;
-        }
-        showFailure(data, err.message);
-      });
+    if (currentType === 'book') sendBooking(data); else sendRequest(data);
   });
 
   document.querySelectorAll('[data-request]').forEach(function (btn) {
@@ -1651,6 +2055,26 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
       openModal(btn.getAttribute('data-request'), btn);
     });
   });
+
+  // "None of these times work": the plain demo request, details kept.
+  document.getElementById('rqNoTime').addEventListener('click', function () {
+    clearErrors();
+    slots.start = null;
+    applyType('demo');
+    focusFirst();
+  });
+
+  // Fetch the open times shortly before they are needed, so "Book a demo"
+  // opens straight onto them.
+  var demoSection = document.getElementById('demo');
+  if (demoSection && 'IntersectionObserver' in window) {
+    var warm = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (e) { return e.isIntersecting; })) return;
+      warm.disconnect();
+      if (slots.state === 'idle') loadSlots();
+    }, { rootMargin: '600px 0px' });
+    warm.observe(demoSection);
+  }
 
   document.getElementById('rqClose').addEventListener('click', closeModal);
   document.getElementById('rqDoneClose').addEventListener('click', closeModal);
