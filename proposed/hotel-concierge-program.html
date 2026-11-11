@@ -516,7 +516,7 @@ a{color:inherit;text-decoration:none;}
 .reveal.in{opacity:1;transform:none;}
 
 /* ============================================================
-   REQUEST MODAL — demo request + 15-minute meeting request
+   REQUEST MODAL — book a demo, or request one
    Posts to the site's /forms/request endpoint (tools/serve.py),
    which emails partners@butlerbutton.co and acknowledges the
    requester. Both mails carry the same unique request ID.
@@ -558,6 +558,13 @@ a{color:inherit;text-decoration:none;}
 .rq-f input:focus,.rq-f select:focus,.rq-f textarea:focus{outline:none;
   border-color:var(--indigo-light);background:rgba(255,255,255,.07);
   box-shadow:0 0 0 3px rgba(129,140,248,.18);}
+/* The list a select opens is drawn by the browser, not by this page. Behind a
+   see-through background some browsers paint that list white and keep our
+   white text, which cannot be read. So the select and its options get solid
+   colours: the same tones as the other fields, without the transparency. */
+.rq-f select{background-color:#15151D;}
+.rq-f select:focus{background-color:#1B1B23;}
+.rq-f select option{background-color:#15151D;color:var(--white);}
 .rq-f.bad input,.rq-f.bad select,.rq-f.bad textarea{border-color:#F87171;}
 .rq-f .msg-err{font-size:.72rem;color:#FCA5A5;}
 .rq-f .hint{font-size:.72rem;color:var(--text-mute);}
@@ -1218,7 +1225,6 @@ a{color:inherit;text-decoration:none;}
       <p class="reveal" style="margin:0 0 2rem;font-family:var(--serif);font-style:italic;font-size:clamp(1rem,1.8vw,1.22rem);color:rgba(255,255,255,.92);">Start with a live demo, then go live within a week. One flat price of US$99 a month per property, with everything included from your first day.</p>
       <div class="demo-cta">
         <button type="button" class="btn btn-white" data-request="demo">Book a demo</button>
-        <button type="button" class="btn btn-ghost" data-request="meeting">Request a 15-minute meeting</button>
       </div>
     </div>
   </div>
@@ -1321,25 +1327,6 @@ a{color:inherit;text-decoration:none;}
             <input type="number" id="rq-rooms" name="rooms" min="1" max="100000" step="1" inputmode="numeric" placeholder="48">
           </div>
 
-          <div class="rq-f" data-only="meeting">
-            <label for="rq-preferred_date">Preferred date</label>
-            <input type="date" id="rq-preferred_date" name="preferred_date">
-          </div>
-          <div class="rq-f" data-only="meeting">
-            <label for="rq-preferred_time">Preferred time</label>
-            <select id="rq-preferred_time" name="preferred_time">
-              <option value="">Any time works</option>
-              <option>Morning (08:00 - 12:00)</option>
-              <option>Afternoon (12:00 - 17:00)</option>
-              <option>Evening (17:00 - 21:00)</option>
-            </select>
-          </div>
-          <div class="rq-f rq-f--full" data-only="meeting">
-            <label for="rq-timezone">Your time zone</label>
-            <input type="text" id="rq-timezone" name="timezone" placeholder="America/New_York">
-            <span class="hint">Pre-filled from your browser. Change it if the call is for a colleague elsewhere.</span>
-          </div>
-
           <div class="rq-f rq-f--full">
             <label for="rq-message" id="rq-message-label">Anything you would like us to cover?</label>
             <textarea id="rq-message" name="message" rows="3" maxlength="2000" placeholder="Optional. Your nearest airports, whether you already use a car service, anything else worth knowing."></textarea>
@@ -1380,7 +1367,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
 </script>
 
 <script>
-/* Request modal — book a demo, request a demo, request a 15-minute meeting.
+/* Request modal — book a demo, or request one.
 
    Booking a demo: the Veltm butler-demo-booking Edge Function lists the open
    times on the team's Google Calendar (GET) and creates the event, with its
@@ -1461,16 +1448,6 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
       note: REQUEST_NOTE,
       doneTitle: 'Demo request received.',
       doneText: 'Our partnerships team has it, and a confirmation is on its way to your inbox. Quote this reference in any reply.'
-    },
-    meeting: {
-      kicker: 'Request a 15-minute meeting',
-      title: 'Fifteen minutes, no slides.',
-      lede: 'Pick a window that suits you. We will confirm by email with a calendar invite and a video link.',
-      messageLabel: 'Anything you would like to cover on the call?',
-      submit: 'Request the meeting',
-      note: REQUEST_NOTE,
-      doneTitle: 'Meeting request received.',
-      doneText: 'Our partnerships team has it and will confirm a slot by email. Quote this reference in any reply.'
     }
   };
 
@@ -1709,7 +1686,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     });
   }
 
-  function openModal(type, opener) {
+  function openModal(opener) {
     lastFocus = opener || document.activeElement;
     opens += 1;
     clearErrors();
@@ -1720,14 +1697,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     back.hidden = false;
     document.body.style.overflow = 'hidden';
 
-    var tz = field('timezone');
-    if (tz && !tz.value) tz.value = visitorZone || '';
-    var d = field('preferred_date');
-    if (d && !d.min) d.min = new Date().toISOString().slice(0, 10);
-
-    if (type === 'demo') { openBooking(); return; }
-    applyType(type);
-    focusFirst();
+    openBooking();
   }
 
   function closeModal() {
@@ -1742,22 +1712,10 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   }
 
   function collect() {
-    // The API models a demo request. A meeting request carries its scheduling
-    // details at the top of `notes` so nothing is dropped on the way.
-    var notes = val('message');
-    if (currentType === 'meeting') {
-      var lines = ['[15-minute meeting request]'];
-      if (val('preferred_date')) lines.push('Preferred date: ' + val('preferred_date'));
-      if (val('preferred_time')) lines.push('Preferred time: ' + val('preferred_time'));
-      if (val('timezone')) lines.push('Time zone: ' + val('timezone'));
-      notes = lines.join('\n') + (notes ? '\n\n' + notes : '');
-    }
-
     var data = {};
     Object.keys(FIELD_MAP).forEach(function (ours) {
       data[FIELD_MAP[ours]] = val(ours);
     });
-    data.notes = notes;
     data.source = 'butlerbutton.co';
     data.page_url = location.href;
     data.company_website = val('company_website');   // honeypot, normally empty
@@ -1786,7 +1744,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   }
 
   function mailtoFallback(data) {
-    var label = currentType === 'meeting' ? '15-minute meeting request' : 'Demo request';
+    var label = 'Demo request';
     var lines = [
       'Request type: ' + label,
       'Name: ' + (data.full_name || ''),
@@ -1794,13 +1752,11 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
       'Phone: ' + (data.phone || ''),
       'Property or company: ' + (data.property_name || ''),
       'Role: ' + (data.role || ''),
-      'City & country: ' + (data.city_country || '')
+      'City & country: ' + (data.city_country || ''),
+      'Property type: ' + (data.property_type || ''),
+      'Rooms or keys: ' + (data.rooms || ''),
+      '', 'Notes:', data.notes || '(none)'
     ];
-    if (currentType !== 'meeting') {
-      lines.push('Property type: ' + (data.property_type || ''));
-      lines.push('Rooms or keys: ' + (data.rooms || ''));
-    }
-    lines.push('', 'Notes:', data.notes || '(none)');
     return 'mailto:' + TEAM_EMAIL +
       '?subject=' + encodeURIComponent(
         label + ' - ' + (data.property_name || data.full_name || 'website')) +
@@ -2050,7 +2006,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   document.querySelectorAll('[data-request]').forEach(function (btn) {
     btn.addEventListener('click', function (ev) {
       ev.preventDefault();
-      openModal(btn.getAttribute('data-request'), btn);
+      openModal(btn);
     });
   });
 

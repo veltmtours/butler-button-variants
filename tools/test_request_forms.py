@@ -794,18 +794,32 @@ class PageWiring(unittest.TestCase):
         "full_name", "work_email", "property_name", "city_country", "role", "phone",
         "property_type", "rooms", "notes", "source", "page_url", "company_website",
     }
-    # Meeting-only inputs, folded into `notes` rather than sent as their own keys.
-    FOLDED_INTO_NOTES = {"preferred_date", "preferred_time", "timezone"}
-
     @classmethod
     def setUpClass(cls) -> None:
         with urllib.request.urlopen(f"{BASE}/hotel-concierge-program.html", timeout=10) as res:
             cls.html = res.read().decode()
 
-    def test_both_buttons_are_wired(self) -> None:
+    def test_the_demo_button_is_wired(self) -> None:
         self.assertIn('data-request="demo"', self.html)
-        self.assertIn('data-request="meeting"', self.html)
         self.assertIn('id="rqForm"', self.html)
+
+    def test_the_15_minute_meeting_option_is_gone(self) -> None:
+        """One way in: "Book a demo". No meeting button, and no form left behind it."""
+        self.assertEqual(re.findall(r'data-request="(\w+)"', self.html), ["demo"])
+        self.assertNotIn("15-minute", self.html)
+        self.assertNotIn("preferred_date", self.html)
+        self.assertNotIn("preferred_time", self.html)
+
+    def test_dropdown_lists_have_solid_colours(self) -> None:
+        """The browser draws a select's open list itself. Over a see-through
+        background some draw it white, and our white text vanished on it."""
+        option = re.search(r"\.rq-f select option\{([^}]*)\}", self.html)
+        self.assertIsNotNone(option, "no colours set for the dropdown's options")
+        self.assertRegex(option.group(1), r"background-color:#[0-9A-Fa-f]{6}\b")
+        self.assertIn("color:var(--white)", option.group(1))
+        select = re.search(r"\.rq-f select\{([^}]*)\}", self.html)
+        self.assertIsNotNone(select, "the select itself has no solid background")
+        self.assertRegex(select.group(1), r"background-color:#[0-9A-Fa-f]{6}\b")
 
     def test_posts_to_the_edge_function_with_the_anon_key(self) -> None:
         self.assertIn("functions/v1/butler-demo-request", self.html)
@@ -876,11 +890,11 @@ class PageWiring(unittest.TestCase):
         self.assertIsNotNone(block, "FIELD_MAP not found in the page")
         return dict(re.findall(r"(\w+):\s*'(\w+)'", block.group(1)))
 
-    def test_every_input_is_either_mapped_or_folded(self) -> None:
+    def test_every_input_is_sent_somewhere(self) -> None:
         inputs = set(re.findall(
             r'<(?:input|select|textarea)[^>]*\sname="([^"]+)"', self.html))
         our_names = set(self._field_map())
-        unaccounted = inputs - our_names - self.FOLDED_INTO_NOTES - {"company_website"}
+        unaccounted = inputs - our_names - {"company_website"}
         self.assertEqual(unaccounted, set(), f"inputs sent nowhere: {sorted(unaccounted)}")
 
     def test_mapped_targets_are_all_known_api_fields(self) -> None:
