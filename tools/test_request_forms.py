@@ -814,6 +814,54 @@ class PageWiring(unittest.TestCase):
         # The old same-origin mail endpoint must no longer be the target.
         self.assertNotIn("window.BB_FORMS_API", self.html)
 
+    # ── "Book a demo": a time picker in the same pop-up ──────────────────
+    # The booking itself is the Veltm butler-demo-booking Edge Function, which
+    # uses the Google account the Veltm Tours app is already connected to.
+    # This site holds no Google keys and has no booking endpoint of its own.
+
+    def test_the_demo_button_reads_book_a_demo(self) -> None:
+        self.assertRegex(self.html, r'data-request="demo"[^>]*>Book a demo<')
+
+    def test_booking_goes_to_the_veltm_api_with_the_anon_key(self) -> None:
+        self.assertIn("functions/v1/butler-demo-booking", self.html)
+        # Local previews reach it through this server's /api/* proxy.
+        self.assertIn("location.origin + '/api/butler-demo-booking'", self.html)
+        calls = re.findall(r"fetch\(BOOKING_URL, \{(.*?)\}\)", self.html, re.S)
+        self.assertEqual(len(calls), 2, "expected one call for open times and one to book")
+        for call in calls:
+            self.assertIn("apiHeaders(", call)
+        # Nothing may still point at a booking endpoint on this server.
+        self.assertNotIn("/booking/slots", self.html)
+        self.assertNotIn("/booking/book", self.html)
+
+    def test_the_lead_is_still_sent_after_a_booking(self) -> None:
+        booked = re.search(r"function booked\(.*?\n  \}", self.html, re.S)
+        self.assertIsNotNone(booked, "booked() not found in the page")
+        self.assertIn("postLead(data, true)", booked.group(0))
+
+    def test_every_field_a_booking_posts_is_one_the_api_reads(self) -> None:
+        block = re.search(r"var BOOK_FIELDS = \[(.*?)\];", self.html, re.S)
+        self.assertIsNotNone(block, "BOOK_FIELDS not found in the page")
+        posted = set(re.findall(r"'(\w+)'", block.group(1)))
+        self.assertTrue({"name", "email", "company", "location"} <= posted, posted)
+        # FIELDS in the Veltm repo's supabase/functions/_shared/demoBooking.ts.
+        api_reads = {"name", "email", "phone", "company", "role", "location",
+                     "property_type", "rooms", "timezone", "message", "page"}
+        self.assertEqual(posted - api_reads, set())
+
+    def test_days_are_grouped_in_the_visitors_zone_not_utc(self) -> None:
+        grouping = re.search(r"function groupSlots\(.*?\n  \}", self.html, re.S)
+        self.assertIsNotNone(grouping, "groupSlots not found in the page")
+        self.assertIn("timeZone", grouping.group(0))
+        self.assertNotIn("toISOString", grouping.group(0))
+
+    def test_the_picker_adds_no_named_inputs(self) -> None:
+        """Named inputs are sent as lead fields; the picker keeps its choice in JS."""
+        picker = re.search(r'<div[^>]*id="rqSlots".*?</div>\s*\n\s*<div class="rq-f">',
+                           self.html, re.S)
+        self.assertIsNotNone(picker, "slot picker not found in the page")
+        self.assertIsNone(re.search(r"<(input|select|textarea)\b", picker.group(0)))
+
     def test_honeypot_is_named_and_kept_off_screen(self) -> None:
         self.assertIn('name="company_website"', self.html)
         hp = re.search(r"\.rq-hp\{([^}]*)\}", self.html)
