@@ -907,6 +907,34 @@ class PageWiring(unittest.TestCase):
             self.assertIn(required, mapped.values(), f"{required} is never sent")
 
 
+class PageCopy(unittest.TestCase):
+    """What the landing page may and may not say."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        with urllib.request.urlopen(f"{BASE}/hotel-concierge-program.html", timeout=10) as res:
+            html = res.read().decode()
+        # The words a visitor can read: no scripts, styles or inline image data.
+        text = re.sub(r"<(script|style)\b.*?</\1>", "", html, flags=re.S)
+        cls.text = re.sub(r'src="data:[^"]*"', "", text).lower()
+
+    def test_the_page_publishes_no_pricing(self) -> None:
+        """Price is a conversation for the demo. The site states no price, no
+        fee and no billing terms, and has no pricing section to link to.
+        (Third-party figures on what a disrupted trip costs a traveler stay.)"""
+        for banned in ("us$", "$99", "pricing", "setup fee", "per month", "a month",
+                       "/ month", "/month", "per-guest"):
+            # assertFalse, not assertNotIn: a failure should name the phrase,
+            # not print the whole page.
+            self.assertFalse(banned in self.text, f"pricing language on the page: {banned!r}")
+        self.assertFalse('href="#terms"' in self.text, "a link to the old pricing section")
+
+    def test_every_in_page_link_has_a_target(self) -> None:
+        ids = set(re.findall(r'\bid="([^"]+)"', self.text))
+        for anchor in set(re.findall(r'href="#([^"]+)"', self.text)):
+            self.assertIn(anchor, ids, f"#{anchor} points at nothing")
+
+
 class CacheHeaders(unittest.TestCase):
     """Pages revalidate on every visit so a deploy shows up at once; assets keep the default."""
 
