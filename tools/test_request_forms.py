@@ -935,6 +935,90 @@ class PageCopy(unittest.TestCase):
             self.assertIn(anchor, ids, f"#{anchor} points at nothing")
 
 
+class ProductAndProof(unittest.TestCase):
+    """The product simulator ("See it work") and the proof points."""
+
+    MESSAGES = (
+        "airline data shows B6 1234 JFK-BOS delayed about 2 hrs, now departing 9:40 PM.",
+        "airline data shows UA 2381 ORD-MHT on Fri Nov 14 as CANCELLED.",
+        "airline data shows WN 1532 BWI-MHT has been DIVERTED to Boston Logan (BOS).",
+        "the National Weather Service has issued a Winter Storm Warning for the area until Sat 7:00 AM.",
+    )
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        with urllib.request.urlopen(f"{BASE}/hotel-concierge-program.html", timeout=10) as res:
+            cls.html = res.read().decode()
+
+    def _section(self, section_id: str) -> str:
+        found = re.findall(rf'<section\b[^>]*\bid="{section_id}".*?</section>', self.html, re.S)
+        self.assertEqual(len(found), 1, f'expected exactly one <section id="{section_id}">')
+        return found[0]
+
+    @staticmethod
+    def _words(markup: str) -> str:
+        """The text a visitor reads: inline tags vanish, block tags become a space."""
+        markup = re.sub(r"</?(?:mark|span|b|i|em|small|strong)\b[^>]*>", "", markup)
+        return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", markup))
+
+    def test_the_sections_sit_where_the_page_needs_them(self) -> None:
+        """Product straight after "Meet Butler Button"; proof before onboarding."""
+        self._section("product")
+        self._section("proof")
+        order = [self.html.index(f'id="{name}"') for name in
+                 ("solution", "product", "how", "alerts", "proof", "onboard")]
+        self.assertEqual(order, sorted(order))
+        nav = re.search(r'<div class="nav-links">.*?</div>', self.html, re.S)
+        self.assertIsNotNone(nav, "nav links not found")
+        self.assertIn('href="#product"', nav.group(0))
+
+    def test_every_scenario_is_in_the_markup_itself(self) -> None:
+        """The simulator is an enhancement. Each scenario's text is plain HTML,
+        so the section is complete before, and without, any script."""
+        words = self._words(self._section("product"))
+        for message in self.MESSAGES:
+            self.assertIn(message, words)
+
+    def test_the_simulator_quotes_the_pages_own_example_messages(self) -> None:
+        """One wording per alert across the page. The hero thread carries the
+        delayed-flight text; the simulator must not drift from it."""
+        hero = re.search(r'<div class="thread-body">.*?</div>\s*</div>', self.html, re.S)
+        self.assertIsNotNone(hero, "hero conversation not found")
+        self.assertIn(self.MESSAGES[0], self._words(hero.group(0)))
+
+    def test_one_scenario_shows_by_default(self) -> None:
+        product = self._section("product")
+        buttons = re.findall(
+            r'<button type="button" class="pv-tab" data-pv="(\w+)" aria-pressed="(true|false)"', product)
+        self.assertEqual([name for name, _ in buttons], ["delayed", "cancelled", "diverted", "storm"])
+        self.assertEqual([name for name, pressed in buttons if pressed == "true"], ["diverted"])
+        self.assertIn('data-pv-scene="diverted"', product)
+
+    def test_made_up_examples_are_labelled(self) -> None:
+        self.assertIn("Illustrative example. Guest names and flights are made up.",
+                      self._words(self._section("product")))
+
+    def test_proof_draws_the_same_check_schedule_the_page_states(self) -> None:
+        """One schedule, stated in Travel alerts and drawn in the proof section.
+        If it ever changes, both have to."""
+        stated = re.search(
+            r"checks live status (\d+) hours, (\d+) hours, (\d+) hours and (\d+) minutes "
+            r"before departure, then every (\d+) minutes once a flight is late",
+            self._words(self._section("alerts")))
+        self.assertIsNotNone(stated, "the schedule sentence in Travel alerts changed shape")
+        proof = self._section("proof")
+        drawn = re.findall(r'<li class="pf-c"><b>(\d+)<small>(hours|minutes)</small>', proof)
+        self.assertEqual([number for number, _ in drawn], list(stated.groups()[:4]))
+        self.assertEqual([unit for _, unit in drawn], ["hours", "hours", "hours", "minutes"])
+        self.assertIn(f"+{stated.group(5)}<small>minutes</small>", proof)
+        self.assertIn(f"every {stated.group(5)} minutes", self._words(proof))
+
+    def test_proof_ends_on_the_demo(self) -> None:
+        proof = self._section("proof")
+        self.assertRegex(proof, r'<a class="btn btn-primary" href="#demo">Book a demo</a>')
+        self.assertIn("demo mode", self._words(proof))
+
+
 class CacheHeaders(unittest.TestCase):
     """Pages revalidate on every visit so a deploy shows up at once; assets keep the default."""
 
