@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Guest Travel Assistant for Hotels | Butler Button</title>
-<meta name="description" content="Butler Button is the travel assistant your hotel gives every guest: live flight and weather alerts by text, help when plans change, and a car to the hotel even if the flight diverts. Live within a week, with no app for guests and no hardware for you.">
+<meta name="description" content="Butler Button is the travel assistant your hotel gives every guest: live flight and weather alerts by text, real people to help when plans change, and a car to the hotel even if the flight diverts. Live within a week, with no app for guests and no hardware for you.">
 <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -971,6 +971,160 @@ a{color:inherit;text-decoration:none;}
 @media(prefers-reduced-motion:reduce){
   #product *,#proof *{animation-delay:0s!important;transition-delay:0s!important;}
 }
+
+/* ============================================================
+   THE PEOPLE (hp-): software up to the word ASSIST, people after it
+   ============================================================ */
+.hp{position:relative;overflow:hidden;background:var(--dark);color:var(--white);}
+.hp::before{content:"";position:absolute;width:900px;height:900px;border-radius:50%;right:-320px;top:-380px;
+  background:radial-gradient(circle,rgba(124,58,237,.18),transparent 65%);pointer-events:none;}
+.hp .wrap{position:relative;z-index:1;}
+.hp .head .eyebrow{color:var(--indigo-light);}
+.hp .head .sub{color:rgba(255,255,255,.72);text-wrap:pretty;}
+/* Two-sentence headlines: each sentence stays whole, and the break falls between them. */
+#hp-h,#ec-h{text-wrap:balance;}
+#hp-h span,#ec-h span{display:inline-block;}
+/* The relay: a quiet lane for what runs by itself, a warm one for what a person does.
+   Each lane is as wide as its copy; the wire between them takes the slack. */
+.hp-relay{display:grid;grid-template-columns:auto minmax(12rem,1fr) auto;align-items:stretch;}
+.hp-lane{border-radius:var(--r-scenario);padding:1.7rem 1.8rem 1.9rem;}
+.hp-lane h3{margin:0 0 1.15rem;font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;}
+.hp-lane ul{list-style:none;margin:0;padding:0;display:grid;gap:.9rem;}
+.hp-lane li{position:relative;line-height:1.45;text-wrap:balance;}
+.hp-auto{align-self:center;border:1px dashed rgba(255,255,255,.24);}
+.hp-auto h3{color:rgba(255,255,255,.68);}
+.hp-auto li{padding-left:1.7rem;font-size:.95rem;color:rgba(255,255,255,.76);}
+.hp-auto li::before{content:"";position:absolute;left:.2rem;top:.48em;width:.5rem;height:.5rem;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.55);}
+.hp-human{background:linear-gradient(160deg,rgba(79,70,229,.34),rgba(124,58,237,.16));border:1px solid rgba(129,140,248,.5);
+  box-shadow:0 30px 70px -30px rgba(79,70,229,.6);}
+.hp-human h3{color:#C7D2FE;}
+.hp-human li{padding-left:2.1rem;font-family:var(--serif);font-weight:500;font-size:clamp(1.1rem,1.55vw,1.32rem);line-height:1.35;}
+.hp-human li::before{content:"";position:absolute;left:0;top:.2em;width:1.25rem;height:1.25rem;border-radius:50%;background:var(--grad-primary);}
+.hp-human li::after{content:"";position:absolute;left:.44rem;top:.43em;width:.3rem;height:.56rem;border:solid var(--white);
+  border-width:0 2px 2px 0;transform:rotate(45deg);}
+/* The wire: dashed where it leaves the automatic lane, solid and warm where it reaches the person. */
+.hp-hinge{margin:0;display:flex;align-items:center;}
+.hp-hinge i{position:relative;flex:1;min-width:1rem;height:2px;border-radius:2px;overflow:hidden;}
+.hp-hinge i:first-child{background:repeating-linear-gradient(90deg,rgba(255,255,255,.34) 0 5px,transparent 5px 10px);}
+.hp-hinge i:last-child{background:linear-gradient(90deg,var(--indigo-light),var(--violet-light));}
+.hp-hinge i::after{content:"";position:absolute;inset:0;transform:translateX(-101%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);}
+/* The bottom padding mirrors the label above the pill, so the wire passes through the pill's centre. */
+.hp-hinge span{display:flex;flex-direction:column;align-items:center;gap:.65rem;padding:0 .9rem calc(.82rem*1.6 + .65rem);
+  font-size:.82rem;line-height:1.6;color:rgba(255,255,255,.76);white-space:nowrap;}
+.hp-hinge b{padding:.68rem 1.15rem;border-radius:18px 18px 6px 18px;font-size:.92rem;line-height:1.35;letter-spacing:.16em;color:var(--white);
+  background:var(--grad-primary);box-shadow:0 10px 26px rgba(79,70,229,.5);}
+/* Once, when it scrolls into view: the pulse crosses, the word lands, the person's lane lifts. */
+.hp-relay.pv-in .hp-hinge i::after{animation:pv-run 1s var(--ease) .55s both;}
+.hp-relay.pv-in .hp-hinge i:last-child::after{animation-delay:1.35s;}
+.hp-relay.pv-in .hp-hinge b{animation:hp-pop .7s var(--ease) 1.05s both;}
+.hp-relay.pv-in .hp-human{animation:hp-land .9s var(--ease) 1.85s both;}
+@keyframes hp-pop{35%{transform:scale(1.08);box-shadow:0 0 0 8px rgba(124,58,237,.28),0 10px 26px rgba(79,70,229,.5);}}
+@keyframes hp-land{35%{border-color:#C7D2FE;box-shadow:0 30px 80px -24px rgba(124,58,237,.9);}}
+/* Behind that person: three things that take years, not code */
+.hp-lead{margin:3.4rem 0 0;font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--indigo-light);}
+.hp-three{list-style:none;margin:1.1rem 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:3.2rem;}
+.hp-three li{position:relative;padding:1.5rem 0 0;border-top:1px solid rgba(255,255,255,.16);}
+.hp-three li::before{content:"";position:absolute;left:0;top:-1px;width:2.4rem;height:2px;background:var(--grad-primary);}
+.hp-three li:nth-child(2){transition-delay:.1s;}
+.hp-three li:nth-child(3){transition-delay:.2s;}
+.hp-three h3{margin:0 0 .7rem;font-family:var(--serif);font-weight:700;font-size:clamp(1.9rem,2.9vw,2.6rem);letter-spacing:-.03em;
+  line-height:1.05;}
+.hp-three p{margin:0;font-size:.98rem;line-height:1.6;color:rgba(255,255,255,.76);text-wrap:pretty;}
+.hp-by{display:inline-flex;align-items:center;gap:.65rem;min-height:44px;margin-top:.7rem;font-size:.88rem;font-weight:600;color:var(--white);}
+.hp-by .arr{display:inline-block;transition:transform .2s var(--ease);}
+.hp-by:hover .arr{transform:translateX(3px);}
+/* The thesis: the quiet sentence first, then the one that answers it */
+.hp-close{margin:3.2rem 0 0;font-family:var(--serif);font-style:italic;font-size:clamp(1.3rem,2.5vw,2rem);line-height:1.32;
+  color:rgba(255,255,255,.94);text-wrap:balance;}
+.hp-close span{display:block;color:rgba(255,255,255,.6);}
+@media(max-width:900px){
+  .hp-relay{grid-template-columns:1fr;}
+  .hp-auto{align-self:stretch;}
+  .hp-hinge{flex-direction:column;}
+  .hp-hinge i{flex:none;width:2px;height:1.6rem;min-width:0;}
+  .hp-hinge i:first-child{background:repeating-linear-gradient(180deg,rgba(255,255,255,.34) 0 5px,transparent 5px 10px);}
+  .hp-hinge i:last-child{background:linear-gradient(180deg,var(--indigo-light),var(--violet-light));}
+  .hp-hinge i::after{display:none;}
+  .hp-hinge span{padding:.7rem 0;}
+  .hp-three{grid-template-columns:1fr;}
+  .hp-three li{padding:1.3rem 0 1.7rem;}
+  .hp-three li:last-child{padding-bottom:0;}
+}
+@media(max-width:700px){
+  .hp-lane{padding:1.4rem 1.3rem 1.5rem;}
+  .hp-lead{margin-top:2.6rem;}
+  .hp-close{margin-top:2.4rem;}
+}
+
+/* ============================================================
+   WHAT THE PROPERTY EARNS (ec-): an estimate
+   ============================================================ */
+#earn .sub{color:var(--body-gray);text-wrap:pretty;}
+/* The sub has one sentence for when the sliders work and one for when they cannot. */
+.ec-j,.ec-js .ec-nj{display:none;}
+.ec-js .ec-j{display:inline;}
+.ec{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);border-radius:var(--r-product);overflow:hidden;
+  background:var(--white);border:1px solid var(--border-gray);box-shadow:var(--glow-card),var(--shadow-sm);}
+.ec-in,.ec-out{min-width:0;}
+.ec-in{display:flex;flex-direction:column;justify-content:center;gap:1.5rem;padding:2.3rem 2.4rem 2rem;}
+.ec-row{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;}
+.ec label{font-size:.98rem;font-weight:600;line-height:1.35;color:var(--near-black);text-wrap:balance;}
+.ec output{font-family:var(--serif);font-variant-numeric:lining-nums tabular-nums;font-size:1.32rem;font-weight:700;
+  color:var(--indigo);white-space:nowrap;}
+/* Sliders appear only once the script is running; until then the three numbers read as the example's inputs. */
+.ec input[type=range]{display:none;-webkit-appearance:none;appearance:none;width:100%;height:44px;margin:0;background:transparent;
+  cursor:pointer;touch-action:pan-y;}
+.ec-js .ec input[type=range]{display:block;}
+.ec input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:8px;
+  background:linear-gradient(to right,var(--indigo) var(--p,50%),var(--border-gray) var(--p,50%));}
+.ec input[type=range]::-moz-range-track{height:8px;border-radius:8px;background:var(--border-gray);}
+.ec input[type=range]::-moz-range-progress{height:8px;border-radius:8px;background:var(--indigo);}
+.ec input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-10px;border-radius:50%;
+  background:var(--white);border:3px solid var(--indigo);box-shadow:0 2px 8px rgba(79,70,229,.35);}
+.ec input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--white);border:3px solid var(--indigo);
+  box-shadow:0 2px 8px rgba(79,70,229,.35);}
+.ec input[type=range]:focus-visible{outline:2px solid var(--indigo);outline-offset:2px;border-radius:10px;}
+.ec-fine{margin:0;padding-top:1.3rem;border-top:1px solid var(--border-gray);font-size:.82rem;line-height:1.55;color:var(--body-gray);
+  text-wrap:pretty;}
+.ec-out{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:2.3rem 2.4rem;color:var(--white);
+  background:radial-gradient(520px 320px at 100% 0,rgba(79,70,229,.36),transparent 66%),var(--dark-2);}
+.ec-k{margin:0 0 .45rem;font-family:var(--serif);font-style:italic;font-size:1.15rem;color:var(--indigo-light);}
+.ec-big{margin:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .8rem;}
+.ec-big b{font-family:var(--serif);font-variant-numeric:lining-nums tabular-nums;font-weight:700;font-size:clamp(3rem,6.2vw,4.4rem);
+  letter-spacing:-.04em;line-height:1.02;}
+.ec-big span{font-size:1rem;color:rgba(255,255,255,.78);}
+.ec-yr{margin:.55rem 0 0;font-size:.98rem;color:rgba(255,255,255,.78);}
+.ec-yr b{font-weight:600;font-variant-numeric:tabular-nums;color:var(--white);}
+/* One hundred guests, one dot each: the lit ones are the share who book */
+.ec-dots{display:grid;grid-template-columns:repeat(20,minmax(0,9px));gap:5px;max-width:100%;margin:1.6rem 0 .9rem;}
+.ec-dots:empty{display:none;}
+.ec-dots i{aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.17);transition:background-color .25s var(--ease);}
+.ec-dots i.on{background:var(--violet-light);}
+.ec-who{margin:0 0 1.7rem;max-width:25rem;font-size:.92rem;line-height:1.5;color:rgba(255,255,255,.78);text-wrap:balance;}
+.ec-dots:empty+.ec-who{margin-top:1.4rem;}
+.ec-who b{font-weight:600;color:var(--white);}
+/* A lit dot opens the line that says what the lit dots are. */
+.ec-js .ec-who b::before{content:"";display:inline-block;width:9px;height:9px;margin-right:.5em;border-radius:50%;background:var(--violet-light);}
+@media(max-width:860px){
+  .ec-in{padding:2rem 1.7rem 1.7rem;}
+  .ec-out{padding:2rem 1.7rem;}
+}
+@media(max-width:699px){
+  /* Phones: the figure sits in a compact header that stays in view while the sliders are moved;
+     the dots, the guests line and the button close the card. */
+  .ec{display:flex;flex-direction:column;overflow:clip;}
+  .ec-out{display:contents;}
+  .ec-sum,.ec-more{color:var(--white);background:var(--dark-2);}
+  .ec-sum{order:-1;padding:1.6rem 1.5rem 1.45rem;
+    background:radial-gradient(520px 320px at 100% 0,rgba(79,70,229,.36),transparent 66%),var(--dark-2);}
+  .ec-js .ec-sum{position:sticky;top:66px;z-index:2;}
+  .ec-in{padding:1.5rem 1.5rem 1.4rem;gap:1.2rem;}
+  .ec-more{order:1;padding:.3rem 1.5rem 1.9rem;}
+  .ec-more .ec-dots{margin-top:1.4rem;}
+  .ec-more .ec-who{margin-bottom:1.4rem;}
+}
 </style>
 </head>
 <body>
@@ -985,8 +1139,8 @@ a{color:inherit;text-decoration:none;}
     <div class="nav-links">
       <a href="#why">Why it exists</a>
       <a href="#product">See it work</a>
+      <a href="#people">The people</a>
       <a href="#how">For guests</a>
-      <a href="#alerts">Travel alerts</a>
       <a href="#onboard">Getting live</a>
     </div>
     <a class="btn btn-primary" href="#demo">Book a demo</a>
@@ -1000,7 +1154,7 @@ a{color:inherit;text-decoration:none;}
       <span class="eyebrow">For Hotels · Resorts · Villas · Service Apartments</span>
       <p class="hero-name">Butler Button</p>
       <h1 class="h1">The Guest<br>Travel Assistant</h1>
-      <p class="sub">Give every guest a travel assistant from your hotel. Live flight and weather alerts, help the moment plans change, and a ride to your door even when the flight lands somewhere else. All by text message.</p>
+      <p class="sub">Give every guest a travel assistant from your hotel. Live flight and weather alerts, real people to help when plans change, and a ride to your door even when the flight lands somewhere else. All by text message.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#demo">Book a demo</a>
         <a class="btn btn-ghost" href="#product">See how it works</a>
@@ -1109,7 +1263,7 @@ a{color:inherit;text-decoration:none;}
         <h3>With a Butler Button assistant</h3>
         <ul>
           <li><b>Early</b>the alert comes to them, with what to do next</li>
-          <li><b>Minutes</b>a reply from our team, any hour of the day or night</li>
+          <li><b>A person</b>on our team replies, any hour of the day or night</li>
           <li><b>One text</b>no app and no hold queue, on the phone they already carry</li>
         </ul>
       </div>
@@ -1155,7 +1309,7 @@ a{color:inherit;text-decoration:none;}
   <div class="wrap">
     <span class="eyebrow reveal">The solution</span>
     <h2 class="h2 reveal">Meet Butler Button</h2>
-    <p class="solution-lead reveal">The travel assistant your hotel gives every guest. It watches their flights, warns them about the weather, steps in when plans change and makes sure there is a car to bring them to you, all under <b>your property's brand</b>.</p>
+    <p class="solution-lead reveal">The travel assistant your hotel gives every guest. It watches their flights and warns them about the weather. When plans change, a person on our team steps in and makes sure there is a car to bring them to you, all under <b>your property's brand</b>.</p>
     <div class="pills">
       <div class="pill reveal">
         <span class="chip"><svg viewBox="0 0 24 24"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.3c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" stroke-linejoin="round"/></svg></span>
@@ -1284,17 +1438,17 @@ a{color:inherit;text-decoration:none;}
       <div class="pv-thread" data-pv-in="delayed">
        <p class="pv-b pv-a">Hi Maya, airline data shows B6 1234 JFK-BOS <mark>delayed about 2 hrs</mark>, now departing 9:40 PM. Please confirm with your airline. Reply ASSIST if you need help with plans.</p>
        <p class="pv-key pv-a">Maya replies with one word <b>ASSIST</b></p>
-       <p class="pv-hand pv-a"><b>Our team picks it up</b>, at any hour: your front desk is told Maya is landing late, and a car can be waiting at Logan.</p>
+       <p class="pv-hand pv-a"><b>A person on our team picks it up</b>, at any hour: your front desk is told Maya is landing late, and a car can be waiting at Logan.</p>
       </div>
       <div class="pv-thread" data-pv-in="cancelled">
        <p class="pv-b pv-a">Hi Daniel, airline data shows UA 2381 ORD-MHT on Fri Nov 14 as <mark>CANCELLED</mark>. Please confirm with your airline before leaving for the airport. Reply ASSIST if you need help changing plans.</p>
        <p class="pv-key pv-a">Daniel replies with one word <b>ASSIST</b></p>
-       <p class="pv-hand pv-a"><b>Our team picks it up</b>, at any hour: a rebooked car, a late arrival, an extra night.</p>
+       <p class="pv-hand pv-a"><b>A person on our team picks it up</b>, at any hour: a rebooked car, a late arrival, an extra night.</p>
       </div>
       <div class="pv-thread" data-pv-in="diverted">
        <p class="pv-b pv-a">Hi Sofia, airline data shows WN 1532 BWI-MHT has been <mark>DIVERTED</mark> to Boston Logan (BOS). Reply ASSIST and we'll arrange a car from Logan to the hotel.</p>
        <p class="pv-key pv-a">Sofia replies with one word <b>ASSIST</b></p>
-       <p class="pv-hand pv-a"><b>Our team picks it up</b>, at any hour, and arranges a car from Logan to the hotel.</p>
+       <p class="pv-hand pv-a"><b>A person on our team picks it up</b>, at any hour, and arranges a car from Logan to the hotel.</p>
       </div>
       <div class="pv-thread" data-pv-in="storm">
        <p class="pv-b pv-a" id="pv-wx" data-pv-n="3">Hi <span id="pv-nm">Priya</span>, the National Weather Service has issued a <mark>Winter Storm Warning</mark> for the area until Sat 7:00 AM. Allow extra time if you are driving.</p>
@@ -1368,6 +1522,58 @@ a{color:inherit;text-decoration:none;}
  </div>
 </section>
 
+<!-- THE PEOPLE: what stands behind the alerts. Software up to the word ASSIST, people after it. -->
+<section class="section hp" id="people" aria-labelledby="hp-h">
+ <div class="wrap">
+  <div class="head pv-rv">
+   <span class="eyebrow">The people</span>
+   <h2 class="h2" id="hp-h"><span>Software spots the problem.</span> <span>People solve it.</span></h2>
+   <p class="sub">An alert is the easy part. What your guest gets after it is a person who picks up, partners who take our call, and a way of working built over years of handling trips that went wrong.</p>
+  </div>
+
+  <div class="hp-relay pv-rv">
+   <div class="hp-lane hp-auto">
+    <h3>What runs by itself</h3>
+    <ul>
+     <li>Flights checked on a set schedule</li>
+     <li>The guest texted when a flight changes</li>
+     <li>Weather warnings ready for you to send</li>
+     <li>Every alert and request logged</li>
+    </ul>
+   </div>
+   <p class="hp-hinge"><i></i><span>The guest replies <b>ASSIST</b></span><i></i></p>
+   <div class="hp-lane hp-human">
+    <h3>What a person does</h3>
+    <ul>
+     <li>Answers the guest, day or night</li>
+     <li>Arranges the car with our local limo partner</li>
+     <li>Tells your front desk the guest is running late</li>
+     <li>Sorts out the late arrival or the extra night</li>
+    </ul>
+   </div>
+  </div>
+
+  <p class="hp-lead pv-rv">Behind that person</p>
+  <ol class="hp-three">
+   <li class="pv-rv">
+    <h3>Network</h3>
+    <p>A local limo partner near your property and supplier contacts built up over years. When a flight lands somewhere else, we know who to call.</p>
+   </li>
+   <li class="pv-rv">
+    <h3>Process</h3>
+    <p>A set way of handling delays, cancellations and diversions, so nobody has to work it out while your guest waits.</p>
+   </li>
+   <li class="pv-rv">
+    <h3>Experience</h3>
+    <p>8 years in business aviation, now put to work for your guests.</p>
+    <a class="hp-by" href="#founder"><span class="mini-avatar" aria-hidden="true"><span>AD</span><img src="assets/ansh-dixit.jpg" alt="" loading="lazy" onerror="this.remove()"></span><span>Ansh Dixit, Founder &amp; CEO <span class="arr">&rarr;</span></span></a>
+   </li>
+  </ol>
+
+  <p class="hp-close pv-rv"><span>Technology can be copied.</span> The people, the partners and the years cannot.</p>
+ </div>
+</section>
+
 <!-- HOW IT WORKS -->
 <section class="section lighter light" id="how">
   <div class="wrap">
@@ -1390,7 +1596,7 @@ a{color:inherit;text-decoration:none;}
       <article class="step reveal">
         <span class="step-ring"><svg viewBox="0 0 24 24"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.3c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" stroke-linejoin="round"/></svg><span class="step-n">3</span></span>
         <h3 class="h3">Butler watches the trip</h3>
-        <p>Delays, cancellations, diversions and weather warnings reach the guest by text, with what to do next.</p>
+        <p>Delays, cancellations, diversions and weather warnings reach the guest by text. One word back, ASSIST, and a person takes over.</p>
       </article>
       <article class="step reveal">
         <span class="step-ring"><svg viewBox="0 0 24 24"><path d="M3.5 16v-3.5l2.2-5h12.6l2.2 5V16z" stroke-linejoin="round"/><path d="M3.5 12.5h17" stroke-linecap="round"/><circle cx="7.5" cy="16.8" r="1.7"/><circle cx="16.5" cy="16.8" r="1.7"/></svg><span class="step-n">4</span></span>
@@ -1500,7 +1706,7 @@ a{color:inherit;text-decoration:none;}
         <li>
           <span class="chip"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18 15 15 0 010-18z"/></svg></span>
           <div style="padding-top:.2rem;"><h3 class="h3" style="font-size:1.1rem;margin-bottom:.3rem;">In their own language</h3>
-          <p style="padding-top:0;">The Butler replies in the guest's language automatically.</p></div>
+          <p style="padding-top:0;">The Butler replies in the guest's own language.</p></div>
         </li>
         <li>
           <span class="chip"><svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2" stroke-linecap="round"/></svg></span>
@@ -1553,6 +1759,48 @@ a{color:inherit;text-decoration:none;}
       </article>
     </div>
   </div>
+</section>
+
+<!-- WHAT THE PROPERTY EARNS: an estimate only.
+     The numbers in the markup are the calculator's starting values, so the section is complete without script. -->
+<section class="section light" id="earn" aria-labelledby="ec-h">
+ <div class="wrap">
+  <div class="head pv-rv">
+   <span class="eyebrow">An estimate</span>
+   <h2 class="h2" id="ec-h"><span>Help for your guests.</span> <span>A share for your property.</span></h2>
+   <p class="sub">When a guest uses Butler to book an airport ride or a trip change, such as rebooked travel, a share goes to the property. <span class="ec-j">Here is one example. Move the sliders to your own numbers.</span><span class="ec-nj">Here is one example.</span></p>
+  </div>
+
+  <div class="ec pv-rv" id="ec">
+   <div class="ec-in">
+    <div class="ec-f">
+     <div class="ec-row"><label for="ec-arr">Guest arrivals each month</label><output id="ec-arr-o" for="ec-arr">500</output></div>
+     <input type="range" id="ec-arr" min="0" max="53" step="1" value="23">
+    </div>
+    <div class="ec-f">
+     <div class="ec-row"><label for="ec-buy">Guests who book a ride or a trip change</label><output id="ec-buy-o" for="ec-buy">10%</output></div>
+     <input type="range" id="ec-buy" min="1" max="25" step="1" value="10">
+    </div>
+    <div class="ec-f">
+     <div class="ec-row"><label for="ec-spend">What each of them spends, on average</label><output id="ec-spend-o" for="ec-spend">$100</output></div>
+     <input type="range" id="ec-spend" min="20" max="400" step="5" value="100">
+    </div>
+    <p class="ec-fine">Estimate only. The share depends on how many guests book and what they spend. It is paid to the property, or to whoever owns the revenue.</p>
+   </div>
+   <div class="ec-out">
+    <div class="ec-sum">
+     <p class="ec-k">Your property's estimated share</p>
+     <p class="ec-big"><b id="ec-month" aria-live="polite">$225</b><span>each month</span></p>
+     <p class="ec-yr">About <b id="ec-year">$2,700</b> over a year</p>
+    </div>
+    <div class="ec-more">
+     <div class="ec-dots" id="ec-dots" aria-hidden="true"></div>
+     <p class="ec-who"><b id="ec-n">50 guests</b> each month with a ride or a trip change arranged by our team.</p>
+     <a class="btn btn-primary" href="#demo">Book a demo</a>
+    </div>
+   </div>
+  </div>
+ </div>
 </section>
 
 <!-- PROOF POINTS: seven hard questions, each answered with something the reader can check. -->
@@ -1610,7 +1858,7 @@ a{color:inherit;text-decoration:none;}
     <span class="pf-n">04</span>
     <div><h3 class="h3">Who picks up at 2am?</h3>
     <p class="pf-tok">Any hour</p>
-    <p>Butler Button's team does. A guest replies ASSIST and we take it from there, at any hour of the day or night: a rebooked car, a late arrival, an extra night.</p></div>
+    <p>A real person on Butler Button's team. A guest replies ASSIST and we take it from there, at any hour of the day or night: a rebooked car, a late arrival, an extra night.</p></div>
    </li>
    <li class="pf-rv">
     <span class="pf-n">05</span>
@@ -2704,6 +2952,41 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   },{threshold:.05,rootMargin:'0px 0px -40px 0px'});
   rv.forEach(function(el){seen.observe(el);});
  }
+})();
+
+/* What the property earns. The markup already holds the starting example;
+   this makes it live. It stops quietly if anything it needs is missing. */
+(function(){
+ var d=document,sec=d.getElementById('earn'),
+   $=function(id){return d.getElementById(id);},
+   arr=$('ec-arr'),buy=$('ec-buy'),spend=$('ec-spend'),dots=$('ec-dots'),
+   o={arr:$('ec-arr-o'),buy:$('ec-buy-o'),spend:$('ec-spend-o'),month:$('ec-month'),year:$('ec-year'),n:$('ec-n')};
+ if(!sec||!arr||!buy||!spend||!o.arr||!o.buy||!o.spend||!o.month||!o.year||!o.n||!window.Intl)return;
+ /* One factor turns the three inputs into the estimate. */
+ var SHARE=0.045,
+   /* The arrivals slider steps through round numbers, one per position, from a few villas to a large hotel. */
+   ARR=[20,25,30,35,40,45,50,60,70,80,90,100,125,150,175,200,225,250,275,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100,1200,1300,1400,1500,1750,2000,2250,2500,2750,3000,3500,4000,4500,5000,6000,7000,8000,9000,10000],
+   usd=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}),
+   num=new Intl.NumberFormat('en-US'),pips=[],i;
+ /* An estimate should not pretend to the last dollar. */
+ function tidy(n){return n<100?Math.round(n):n<1000?Math.round(n/5)*5:n<10000?Math.round(n/50)*50:Math.round(n/500)*500;}
+ /* One hundred dots: one guest in a hundred each. */
+ if(dots)for(i=0;i<100;i++)pips.push(dots.appendChild(d.createElement('i')));
+ function render(){
+  var a=ARR[Math.min(ARR.length-1,Math.max(0,parseInt(arr.value,10)||0))],pct=+buy.value||0,s=+spend.value||0,g=Math.round(a*pct/100),
+    month=tidy(a*pct/100*s*SHARE),lit=Math.max(1,Math.round(pct/100*pips.length));
+  o.arr.textContent=num.format(a);arr.setAttribute('aria-valuetext',num.format(a)+' arrivals each month');
+  o.buy.textContent=pct+'%';buy.setAttribute('aria-valuetext',pct+' percent of guests');
+  o.spend.textContent=usd.format(s);spend.setAttribute('aria-valuetext',s+' dollars');
+  o.month.textContent=usd.format(month);
+  o.year.textContent=usd.format(month*12);
+  o.n.textContent=g<1?'Under 1 guest':num.format(g)+(g===1?' guest':' guests');
+  pips.forEach(function(p,k){p.className=k<lit?'on':'';});
+  [arr,buy,spend].forEach(function(el){el.style.setProperty('--p',(el.value-el.min)/(el.max-el.min)*100+'%');});
+ }
+ [arr,buy,spend].forEach(function(el){el.addEventListener('input',render);});
+ sec.classList.add('ec-js');
+ render();
 })();
 </script>
 </body>

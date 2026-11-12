@@ -924,10 +924,14 @@ class PageCopy(unittest.TestCase):
         fee and no billing terms, and has no pricing section to link to.
         (Third-party figures on what a disrupted trip costs a traveler stay.)"""
         for banned in ("us$", "$99", "pricing", "setup fee", "per month", "a month",
-                       "/ month", "/month", "per-guest"):
+                       "/ month", "/month", "per-guest", "commission",
+                       "free trial", "free for", "30 days"):
             # assertFalse, not assertNotIn: a failure should name the phrase,
             # not print the whole page.
             self.assertFalse(banned in self.text, f"pricing language on the page: {banned!r}")
+        # "fee" on its own word only: "feel" and "coffee" are fine.
+        self.assertIsNone(re.search(r"\bfees?\b", re.sub(r"<[^>]+>", " ", self.text)),
+                          "the page mentions a fee")
         self.assertFalse('href="#terms"' in self.text, "a link to the old pricing section")
 
     def test_every_in_page_link_has_a_target(self) -> None:
@@ -967,7 +971,7 @@ class ProductAndProof(unittest.TestCase):
         self._section("product")
         self._section("proof")
         order = [self.html.index(f'id="{name}"') for name in
-                 ("solution", "product", "how", "alerts", "proof", "onboard")]
+                 ("solution", "product", "people", "how", "alerts", "earn", "proof", "onboard")]
         self.assertEqual(order, sorted(order))
         nav = re.search(r'<div class="nav-links">.*?</div>', self.html, re.S)
         self.assertIsNotNone(nav, "nav links not found")
@@ -1050,6 +1054,136 @@ class ProductAndProof(unittest.TestCase):
         proof = self._section("proof")
         self.assertRegex(proof, r'<a class="btn btn-primary" href="#demo">Book a demo</a>')
         self.assertIn("demo mode", self._words(proof))
+
+
+class PeopleAndEarnings(unittest.TestCase):
+    """The human side of the product, and what a property could earn."""
+
+    # The one factor the calculator carries. What it is made of is agreed in
+    # the demo and is deliberately not written down here.
+    SHARE = "0.045"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        with urllib.request.urlopen(f"{BASE}/hotel-concierge-program.html", timeout=10) as res:
+            cls.html = res.read().decode()
+
+    def _section(self, section_id: str) -> str:
+        found = re.findall(rf'<section\b[^>]*\bid="{section_id}".*?</section>', self.html, re.S)
+        self.assertEqual(len(found), 1, f'expected exactly one <section id="{section_id}">')
+        return found[0]
+
+    @staticmethod
+    def _words(markup: str) -> str:
+        markup = re.sub(r"</?(?:mark|span|b|i|em|small|strong|output)\b[^>]*>", "", markup)
+        return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", markup))
+
+    def test_the_page_says_people_answer(self) -> None:
+        """Real people are the point: say it in the hero, in the search snippet,
+        in the simulator and in the people section."""
+        hero = re.search(r'<header class="hero".*?</header>', self.html, re.S)
+        self.assertIsNotNone(hero, "hero not found")
+        self.assertIn("real people to help when plans change", self._words(hero.group(0)))
+        description = re.search(r'<meta name="description" content="([^"]+)"', self.html)
+        self.assertIsNotNone(description, "meta description not found")
+        self.assertIn("real people to help when plans change", description.group(1))
+        product = self._words(self._section("product"))
+        self.assertEqual(product.count("A person on our team picks it up"), 3)
+        # Where the page defines the product, and where it walks through the
+        # guest's steps, a person is part of it.
+        self.assertIn("a person on our team steps in", self._words(self._section("solution")))
+        self.assertIn("One word back, ASSIST, and a person takes over.", self._words(self._section("how")))
+        nav = re.search(r'<div class="nav-links">.*?</div>', self.html, re.S)
+        self.assertIsNotNone(nav, "nav links not found")
+        self.assertIn('<a href="#people">The people</a>', nav.group(0))
+        people = self._words(self._section("people"))
+        self.assertIn("Software spots the problem. People solve it.", people)
+        for stands_behind in ("Network", "Process", "Experience"):
+            self.assertIn(f"<h3>{stands_behind}</h3>", self._section("people"))
+
+    def test_the_people_section_stays_inside_what_the_page_can_back(self) -> None:
+        """No head count, no named staff, no response time. The one person named
+        is the founder, with the experience the founder section states."""
+        people = self._words(self._section("people"))
+        self.assertIn("8 years in business aviation", people)
+        # The page promises a person, at any hour. It promises no response time.
+        impact = self._section("impact")
+        self.assertIn("<li><b>A person</b>on our team replies, any hour of the day or night</li>", impact)
+        self.assertNotIn("<b>Minutes</b>", impact)
+        self.assertIn('href="#founder"', self._section("people"))
+        self.assertIsNone(re.search(r"\d+\s*(?:people|staff|agents|specialists|seconds|minutes)\b", people))
+        for word in ("chatbot", " AI ", " bot "):
+            self.assertNotIn(word, people)
+
+    def test_the_calculator_states_no_fee_and_no_split(self) -> None:
+        """An estimate of what the property earns, and nothing else. The fee,
+        the profit rate and the split are for the demo, and there is no trial."""
+        earn = self._words(self._section("earn"))
+        for banned in ("commission", "free", "trial", "per month", "a month", "deposit", "cancel"):
+            self.assertFalse(banned in earn.lower(), f"the calculator section says {banned!r}")
+        self.assertIsNone(re.search(r"\bfees?\b", earn, re.I), "the calculator section mentions a fee")
+        # No rate of any kind: the only percentage is the slider's own readout,
+        # and no figure carries a decimal point.
+        self.assertEqual(re.findall(r"\d+(?:\.\d+)?\s*%", earn), ["10%"])
+        self.assertIsNone(re.search(r"\d\.\d", earn), "a decimal figure in the calculator section")
+        # An earlier draft named these in its settings; the page must not carry them over.
+        for leftover in ("commissionRate", "partnerShare", "monthlyFee", "Try it free"):
+            self.assertNotIn(leftover, self.html)
+        self.assertIn("Estimate only.", earn)
+        self.assertIn("paid to the property, or to whoever owns the revenue", earn)
+        self.assertRegex(self._section("earn"), r'<a class="btn btn-primary" href="#demo">Book a demo</a>')
+
+    def test_the_calculator_only_counts_what_guests_can_buy_today(self) -> None:
+        earn = self._words(self._section("earn"))
+        self.assertIn("an airport ride or a trip change", earn)
+        for not_sold in ("tour", "experience", "restaurant", "ticket", "spa"):
+            self.assertNotIn(not_sold, earn.lower())
+
+    def test_the_example_in_the_markup_is_the_sum_the_script_does(self) -> None:
+        """Without script the section shows one worked example. Those numbers
+        have to be the ones the live calculator starts on."""
+        earn = self._section("earn")
+
+        def shown(element_id: str) -> str:
+            found = re.search(rf'id="{element_id}"[^>]*>([^<]*)<', earn)
+            self.assertIsNotNone(found, f"#{element_id} not found")
+            return found.group(1)
+
+        def slider(element_id: str) -> int:
+            found = re.search(rf'<input type="range" id="{element_id}"[^>]*\bvalue="(\d+)"', earn)
+            self.assertIsNotNone(found, f"slider #{element_id} not found")
+            return int(found.group(1))
+
+        share = re.search(r"SHARE=([0-9.]+)", self.html)
+        self.assertIsNotNone(share, "the calculator's share is not in the script")
+        self.assertEqual(share.group(1), self.SHARE)
+
+        # The arrivals slider steps through a list of round numbers.
+        steps = re.search(r"ARR=\[([0-9,]+)\]", self.html)
+        self.assertIsNotNone(steps, "the arrivals steps are not in the script")
+        ladder = [int(n) for n in steps.group(1).split(",")]
+        self.assertEqual(ladder, sorted(set(ladder)), "arrivals steps must rise, with no repeats")
+        top = re.search(r'<input type="range" id="ec-arr" min="0" max="(\d+)"', earn)
+        self.assertIsNotNone(top, "arrivals slider not found")
+        self.assertEqual(int(top.group(1)), len(ladder) - 1, "one slider position per step")
+        arrivals = ladder[slider("ec-arr")]
+        self.assertEqual(shown("ec-arr-o"), f"{arrivals:,}")
+        self.assertEqual(shown("ec-buy-o"), f'{slider("ec-buy")}%')
+        self.assertEqual(shown("ec-spend-o"), f'${slider("ec-spend")}')
+        guests = arrivals * slider("ec-buy") / 100
+        exact = guests * slider("ec-spend") * float(share.group(1))
+        # The script rounds an estimate to a sensible step, not to the dollar.
+        step = 1 if exact < 100 else 5 if exact < 1000 else 50 if exact < 10000 else 500
+        month = round(exact / step) * step
+        self.assertEqual(shown("ec-month"), f"${month:,}")
+        self.assertEqual(shown("ec-year"), f"${month * 12:,}")
+        self.assertEqual(shown("ec-n"), f"{round(guests):,} guests")
+
+    def test_the_calculator_reads_as_an_example_until_script_runs(self) -> None:
+        self.assertIn(".ec input[type=range]{display:none;", self.html)
+        self.assertIn(".ec-js .ec input[type=range]{display:block;}", self.html)
+        self.assertRegex(self._section("earn"),
+                         r'<span class="ec-j">[^<]+</span><span class="ec-nj">Here is one example\.</span>')
 
 
 class OnePage(unittest.TestCase):
