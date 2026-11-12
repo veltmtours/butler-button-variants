@@ -971,6 +971,8 @@ class ProductAndProof(unittest.TestCase):
         nav = re.search(r'<div class="nav-links">.*?</div>', self.html, re.S)
         self.assertIsNotNone(nav, "nav links not found")
         self.assertIn('href="#product"', nav.group(0))
+        # "See how it works" in the hero lands on the place that shows it working.
+        self.assertIn('<a class="btn btn-ghost" href="#product">See how it works</a>', self.html)
 
     def test_every_scenario_is_in_the_markup_itself(self) -> None:
         """The simulator is an enhancement. Each scenario's text is plain HTML,
@@ -994,9 +996,35 @@ class ProductAndProof(unittest.TestCase):
         self.assertEqual([name for name, pressed in buttons if pressed == "true"], ["diverted"])
         self.assertIn('data-pv-scene="diverted"', product)
 
+    def test_the_heading_has_a_wording_for_when_the_switch_cannot_work(self) -> None:
+        """Without script the switch is hidden, so "Pick what goes wrong" would be
+        an instruction nobody can follow. The heading and the sub each carry a
+        second wording (.pv-nj) that the stylesheet shows until the script runs."""
+        product = self._section("product")
+        self.assertRegex(product, r'<h2 class="h2" id="pv-h"><span class="pv-j">[^<]+</span>'
+                                  r'<span class="pv-nj">[^<]+</span></h2>')
+        self.assertRegex(product, r'<p class="sub"><span class="pv-j">[^<]+</span><span class="pv-nj">[^<]+</span></p>')
+        self.assertIn(".pv-j,.pv-js .pv-nj{display:none;}", self.html)
+        self.assertIn("sec.classList.add('pv-js')", self.html)
+
     def test_made_up_examples_are_labelled(self) -> None:
-        self.assertIn("Illustrative example. Guest names and flights are made up.",
-                      self._words(self._section("product")))
+        self.assertIn("Illustrative example. Guest names and flights are made up, "
+                      "and the portal view is simplified.", self._words(self._section("product")))
+
+    def test_the_weather_warning_claims_only_what_the_page_claims(self) -> None:
+        """The page gives airport weather and the risk band to guest flights in the
+        Alerts tab. A weather warning "arrives as a ready-to-send alert" and the
+        hotel chooses who gets it; the storm scene must show that and no more."""
+        product = self._section("product")
+        readout = re.search(r'<div class="pv-meta" data-pv-in="([^"]+)">\s*<div class="pv-wx">', product)
+        self.assertIsNotNone(readout, "airport weather and risk band block not found")
+        self.assertEqual(readout.group(1).split(), ["delayed", "cancelled", "diverted"])
+        self.assertIn('<span data-pv-in="delayed cancelled diverted">Partner Portal, Alerts tab</span>'
+                      '<span data-pv-in="storm">Partner Portal</span>', product)
+        storm = re.search(r'<ul class="pv-acts" data-pv-in="storm">(.*?)</ul>', product, re.S)
+        self.assertIsNotNone(storm, "storm scene's desk lines not found")
+        self.assertIn("ready to send", self._words(storm.group(1)))
+        self.assertIn("You choose which guests get it", self._words(storm.group(1)))
 
     def test_proof_draws_the_same_check_schedule_the_page_states(self) -> None:
         """One schedule, stated in Travel alerts and drawn in the proof section.
@@ -1007,11 +1035,15 @@ class ProductAndProof(unittest.TestCase):
             self._words(self._section("alerts")))
         self.assertIsNotNone(stated, "the schedule sentence in Travel alerts changed shape")
         proof = self._section("proof")
-        drawn = re.findall(r'<li class="pf-c"><b>(\d+)<small>(hours|minutes)</small>', proof)
+        drawn = re.findall(r'<li class="pf-c"><b>(\d+)<small>(.*?)</small></b>', proof)
         self.assertEqual([number for number, _ in drawn], list(stated.groups()[:4]))
-        self.assertEqual([unit for _, unit in drawn], ["hours", "hours", "hours", "minutes"])
-        self.assertIn(f"+{stated.group(5)}<small>minutes</small>", proof)
-        self.assertIn(f"every {stated.group(5)} minutes", self._words(proof))
+        self.assertEqual([self._words(unit).strip() for _, unit in drawn],
+                         ["hours", "hours", "hours", "minutes"])
+        late = re.search(r'<p class="pf-every">every <b>(\d+)</b> minutes</p>', proof)
+        self.assertIsNotNone(late, "the late-flight track is missing its interval")
+        self.assertEqual(late.group(1), stated.group(5))
+        # The sentence under the question says it in words too.
+        self.assertIn(f"a fresh check every {stated.group(5)} minutes", self._words(proof))
 
     def test_proof_ends_on_the_demo(self) -> None:
         proof = self._section("proof")

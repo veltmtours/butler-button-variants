@@ -608,8 +608,12 @@ a{color:inherit;text-decoration:none;}
   .msg,.typing,.reveal{opacity:1;transform:none;}
 }
 
-/* PRODUCT SIMULATOR (pv-) and PROOF (pf-). The markup alone is a finished
-   design (Diverted); JS adds .pv-on (switch), .pv-play / .pv-go (motion). */
+/* ============================================================
+   THE PRODUCT (pv-) and PROOF POINTS (pf-)
+   The markup alone is a finished design: the diverted scene.
+   The script adds .pv-js (copy that mentions the switch), .pv-on
+   (the switch itself) and .pv-wait / .pv-play / .pv-go (motion).
+   ============================================================ */
 #product{position:relative;
   background:radial-gradient(900px 520px at 94% -8%,rgba(79,70,229,.1),transparent 62%),var(--gray-bg);}
 #product .sub,#proof .sub{color:var(--body-gray);}
@@ -617,28 +621,41 @@ a{color:inherit;text-decoration:none;}
 .pv-sr{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
 .pv-rv,.pf-rv{transition:opacity .85s var(--ease),transform .85s var(--ease);}
 .pv-pre{opacity:0;transform:translateY(36px);}
+/* Heading and sub: one wording when the switch works, another when it cannot. */
+.pv-j,.pv-js .pv-nj{display:none;}
+.pv-js .pv-j{display:inline;}
 
 /* Stage: one accent per disruption */
 .pv-stage{--pv-a:#A78BFA;--pv-g:rgba(167,139,250,.18);--pv-ink:#5B21B6;--pv-wash:#EDE9FE;--pv-r:84%;
   position:relative;padding:1.1rem;border-radius:var(--r-product);color:var(--white);
   background:radial-gradient(760px 400px at 86% 0,rgba(79,70,229,.26),transparent 64%),var(--dark-2);
-  border:1px solid rgba(255,255,255,.08);box-shadow:0 44px 90px -22px rgba(9,9,11,.5),var(--glow-card);}
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 30px 60px -30px rgba(9,9,11,.55),var(--glow-card);}
 .pv-stage[data-pv-scene="delayed"]{--pv-a:#FBBF24;--pv-g:rgba(251,191,36,.16);--pv-ink:#92400E;--pv-wash:#FEF3C7;--pv-r:56%;}
 .pv-stage[data-pv-scene="cancelled"]{--pv-a:#F87171;--pv-g:rgba(248,113,113,.17);--pv-ink:#991B1B;--pv-wash:#FEE2E2;--pv-r:96%;}
-.pv-stage[data-pv-scene="storm"]{--pv-a:#7DD3FC;--pv-g:rgba(125,211,252,.16);--pv-ink:#075985;--pv-wash:#E0F2FE;--pv-r:62%;}
+.pv-stage[data-pv-scene="storm"]{--pv-a:#7DD3FC;--pv-g:rgba(125,211,252,.16);--pv-ink:#075985;--pv-wash:#E0F2FE;}
 .pv-stage.pv-wait{--pv-r:9%;}
+/* A part marked data-pv-for leaves the layout when its scene is off. */
 [data-pv-scene="delayed"] [data-pv-for]:not([data-pv-for~="delayed"]),
 [data-pv-scene="cancelled"] [data-pv-for]:not([data-pv-for~="cancelled"]),
 [data-pv-scene="diverted"] [data-pv-for]:not([data-pv-for~="diverted"]),
 [data-pv-scene="storm"] [data-pv-for]:not([data-pv-for~="storm"]){display:none;}
+/* A part marked data-pv-in shares one grid cell with its alternatives and is only
+   hidden, so the stage is the same height in every scene and nothing below it jumps. */
+.pv-stack{display:grid;}
+.pv-stack>*{grid-area:1/1;min-width:0;}
+[data-pv-scene="delayed"] [data-pv-in]:not([data-pv-in~="delayed"]),
+[data-pv-scene="cancelled"] [data-pv-in]:not([data-pv-in~="cancelled"]),
+[data-pv-scene="diverted"] [data-pv-in]:not([data-pv-in~="diverted"]),
+[data-pv-scene="storm"] [data-pv-in]:not([data-pv-in~="storm"]){visibility:hidden;}
 
 /* Scenario switch */
 .pv-tabs,.pv-still{background:#14141F;border:1px solid rgba(255,255,255,.08);}
 .pv-tabs{display:none;grid-template-columns:repeat(4,1fr);gap:.35rem;padding:.35rem;border-radius:18px;}
 .pv-on .pv-tabs{display:grid;}
 .pv-on .pv-still{display:none;}
+.pv-used .pv-tabs{position:sticky;top:74px;z-index:6;box-shadow:0 14px 30px rgba(0,0,0,.5);}
 .pv-still{margin:0;padding:.9rem 1.1rem;border-radius:14px;font-size:.9rem;font-weight:600;color:rgba(255,255,255,.82);}
-.pv-tab{position:relative;font:inherit;font-size:.93rem;font-weight:600;color:rgba(255,255,255,.66);background:none;
+.pv-tab{position:relative;font:inherit;font-size:.93rem;font-weight:600;color:rgba(255,255,255,.7);background:none;
   border:1px solid transparent;border-radius:13px;min-height:54px;padding:.4rem .5rem;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:.6rem;
   transition:color .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease);}
@@ -653,16 +670,18 @@ a{color:inherit;text-decoration:none;}
 /* What went wrong */
 .pv-event{position:relative;overflow:hidden;display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);
   gap:1rem 2rem;align-items:center;padding:1.2rem 1.5rem .7rem;}
-.pv-event::after{content:"";position:absolute;left:-14%;top:6%;width:64%;height:130%;background:var(--pv-a);opacity:.1;
-  -webkit-mask:radial-gradient(closest-side,#000,transparent);
+/* Accent wash. It fades to nothing inside its own box, so the clip above never shows an edge. */
+.pv-event::after,.pv-info::before{content:"";position:absolute;left:0;top:0;width:62%;height:100%;background:var(--pv-a);opacity:.1;
+  -webkit-mask:radial-gradient(closest-side,#000,transparent);mask:radial-gradient(closest-side,#000,transparent);
   transition:background-color .8s var(--ease);pointer-events:none;}
+.pv-info::before{display:none;}
 .pv-info,.pv-map{position:relative;z-index:1;min-width:0;}
-.pv-src{display:flex;align-items:center;gap:.6rem;margin:0 0 .85rem;font-size:.7rem;font-weight:600;
-  letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.64);}
+.pv-src,.pv-wire,.pv-k,.pv-cap h3{font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;}
+.pv-src{display:flex;align-items:center;gap:.6rem;margin:0 0 .85rem;color:rgba(255,255,255,.68);}
 .pv-src i{width:8px;height:8px;border-radius:50%;flex:none;background:var(--pv-a);box-shadow:0 0 0 4px var(--pv-g);}
 .pv-code{margin:0 0 1.2rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:.2rem .9rem;font-family:var(--serif);
   font-variant-numeric:lining-nums;font-weight:700;font-size:clamp(2rem,3.4vw,2.9rem);letter-spacing:-.03em;line-height:1.05;}
-.pv-code small{font-family:var(--sans);font-size:.95rem;font-weight:500;letter-spacing:0;color:rgba(255,255,255,.68);}
+.pv-code small{font-family:var(--sans);font-size:.95rem;font-weight:500;letter-spacing:0;color:rgba(255,255,255,.7);}
 .pv-flap{display:flex;gap:5px;margin:0 0 1.15rem;perspective:600px;}
 .pv-flap span{position:relative;flex:0 1 44px;min-width:0;height:clamp(46px,4.3vw,58px);border-radius:8px;display:grid;
   place-items:center;font-size:clamp(1.3rem,2.3vw,1.75rem);font-weight:700;line-height:1;color:var(--pv-a);
@@ -671,13 +690,13 @@ a{color:inherit;text-decoration:none;}
 .pv-flap span::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.85);}
 .pv-flap .pv-f{animation:pv-flip .15s linear;}
 @keyframes pv-flip{50%{transform:rotateX(-86deg);}}
-.pv-det{margin:0;font-size:.98rem;color:rgba(255,255,255,.84);}
+.pv-det{margin:0;max-width:31rem;font-size:.98rem;line-height:1.5;color:rgba(255,255,255,.86);}
 
 /* Route sketch */
 .pv-map{aspect-ratio:400/220;width:100%;max-width:430px;justify-self:end;}
 .pv-map::before{content:"";position:absolute;left:88%;top:53.6%;width:1000px;height:1000px;margin:-500px 0 0 -500px;
   border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 63px,rgba(255,255,255,.07) 63px 64px);
-  -webkit-mask:radial-gradient(circle closest-side,#000 8%,transparent 74%);
+  -webkit-mask:radial-gradient(circle closest-side,#000 8%,transparent 74%);mask:radial-gradient(circle closest-side,#000 8%,transparent 74%);
   pointer-events:none;}
 .pv-map svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
 .pv-m-dim{stroke:rgba(255,255,255,.38);stroke-width:1.6;stroke-dasharray:.1 6;stroke-linecap:round;}
@@ -708,9 +727,8 @@ a{color:inherit;text-decoration:none;}
 .pv-t3{left:auto;right:0;top:94%;}
 .pv-t4{left:40%;top:92%;transform:translate(-50%,-50%);}
 
-/* At the same moment */
-.pv-wire{display:flex;align-items:center;gap:1rem;margin:.1rem 1.5rem .95rem;font-size:.7rem;font-weight:600;
-  letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.62);white-space:nowrap;}
+/* Between the event and the two sides */
+.pv-wire{display:flex;align-items:center;gap:1rem;margin:.1rem 1.5rem .95rem;color:rgba(255,255,255,.66);white-space:nowrap;}
 .pv-wire i{position:relative;flex:1;height:1px;overflow:hidden;background:rgba(255,255,255,.14);}
 .pv-wire i:first-child{transform:scaleX(-1);}
 .pv-wire i::after{content:"";position:absolute;inset:0;transform:translateX(-101%);
@@ -720,22 +738,24 @@ a{color:inherit;text-decoration:none;}
 
 /* Two sides */
 .pv-sides{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.06fr);gap:1.1rem;}
-.pv-side{display:flex;flex-direction:column;min-width:0;border-radius:var(--r-scenario);padding:1.4rem 1.5rem 1.3rem;}
+.pv-side{display:flex;flex-direction:column;min-width:0;border-radius:var(--r-scenario);padding:1.4rem 1.5rem;}
 .pv-guest{background:var(--white);color:var(--text-dark);box-shadow:0 26px 60px rgba(0,0,0,.42);}
 .pv-desk{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.1);}
 .pv-cap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;margin:0 0 1.1rem;min-height:24px;}
-.pv-cap h3{margin:0;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--indigo);}
+.pv-cap h3{margin:0;font-weight:700;color:var(--indigo);}
 .pv-desk .pv-cap h3{color:var(--indigo-light);}
-.pv-cap span{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--text-dim);}
-.pv-desk .pv-cap span{font-weight:500;color:rgba(255,255,255,.64);}
+.pv-cap>span{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--text-dim);}
+.pv-desk .pv-cap>span{display:grid;justify-items:end;font-weight:500;color:rgba(255,255,255,.68);}
 
 /* Guest: message moments */
-.pv-thread{flex:1;display:flex;flex-direction:column;justify-content:center;gap:.65rem;}
-.pv-b{margin:0;align-self:flex-start;max-width:min(94%,29rem);padding:.82rem 1.05rem;font-size:.95rem;line-height:1.5;
+.pv-threads{flex:1;align-items:center;}
+.pv-thread{display:flex;flex-direction:column;gap:.65rem;padding:.35rem 0 .2rem;}
+.pv-b{margin:0;align-self:flex-start;max-width:min(96%,31rem);padding:.9rem 1.1rem;font-size:1rem;line-height:1.5;
   color:var(--text-dark);background:var(--gray-bg);border-radius:18px 18px 18px 6px;
   transition:opacity .4s var(--ease),box-shadow .4s var(--ease);}
 .pv-b mark{padding:.06em .3em;margin:0 -.16em;border-radius:6px;font-weight:600;color:var(--pv-ink);background:var(--pv-wash);
   -webkit-box-decoration-break:clone;box-decoration-break:clone;}
+/* Storm: one copy of the text per guest picked */
 .pv-b[data-pv-n]{margin-bottom:1.5rem;}
 .pv-b[data-pv-n="0"]{opacity:.35;}
 .pv-b[data-pv-n="2"]{box-shadow:0 11px 0 -6px #DADAE3;}
@@ -745,29 +765,25 @@ a{color:inherit;text-decoration:none;}
   color:var(--white);background:var(--grad-primary);box-shadow:0 10px 24px rgba(79,70,229,.32);}
 .pv-hand{margin:.15rem 0 0;max-width:29rem;font-size:.88rem;line-height:1.5;color:var(--body-gray);}
 .pv-hand b{color:var(--near-black);}
-.pv-chips{list-style:none;margin:0;padding:1.1rem 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;}
-.pv-chips li{padding:.3rem .72rem;border-radius:var(--r-pill);font-size:.74rem;font-weight:600;color:var(--body-gray);background:var(--gray-bg);}
-.pv-desk .pv-chips li{color:rgba(255,255,255,.78);background:rgba(255,255,255,.07);}
-.pv-desk .pv-chips li:first-child{padding-left:0;background:none;font-weight:500;color:rgba(255,255,255,.64);}
 
-/* Front desk: alert */
+/* Front desk: the alert */
 .pv-who{display:flex;align-items:center;gap:.9rem;padding:0 0 1.1rem;border-bottom:1px solid rgba(255,255,255,.08);}
 .pv-av{width:42px;height:42px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:var(--serif);
   font-weight:700;font-size:1.1rem;color:var(--pv-a);background:var(--pv-g);}
 .pv-who p{margin:0;flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .7rem;}
 .pv-who b{font-size:1.05rem;}
-.pv-who small{flex-basis:100%;font-size:.84rem;color:rgba(255,255,255,.64);}
+.pv-who small{flex-basis:100%;font-size:.84rem;color:rgba(255,255,255,.68);}
 .pv-st{margin-left:auto;display:inline-flex;align-items:center;gap:.42rem;padding:.28rem .66rem;border-radius:var(--r-pill);
-  font-style:normal;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
+  font-style:normal;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
   color:var(--pv-a);background:var(--pv-g);}
 .pv-st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
-.pv-meta{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem 1.6rem;padding:1.1rem 0 1.2rem;border-bottom:1px solid rgba(255,255,255,.08);}
-.pv-k{display:flex;justify-content:space-between;gap:1rem;margin:0 0 .7rem;font-size:.7rem;font-weight:600;
-  letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6);}
+.pv-meta{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem 1.6rem;align-content:center;padding:1.1rem 0 1.2rem;
+  border-bottom:1px solid rgba(255,255,255,.08);}
+.pv-k{display:flex;justify-content:space-between;gap:1rem;margin:0 0 .7rem;color:rgba(255,255,255,.66);}
 .pv-k b{color:var(--pv-a);}
 .pv-wx p{margin:0;display:flex;flex-wrap:wrap;gap:.5rem 1.3rem;}
 .pv-wx p span{display:inline-flex;align-items:center;gap:.45rem;font-size:.9rem;font-weight:600;}
-.pv-wx i{font-style:normal;font-weight:400;color:rgba(255,255,255,.7);}
+.pv-wx i{font-style:normal;font-weight:400;color:rgba(255,255,255,.72);}
 .pv-band{position:relative;height:8px;margin:.95rem 9px 0;border-radius:99px;background:rgba(255,255,255,.13);}
 .pv-band::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--pv-r);border-radius:99px;
   background:linear-gradient(90deg,rgba(255,255,255,.06),var(--pv-a));transition:width 1s var(--ease);}
@@ -775,22 +791,15 @@ a{color:inherit;text-decoration:none;}
   background:linear-gradient(90deg,transparent 33%,#15151F 33% 34%,transparent 34% 66%,#15151F 66% 67%,transparent 67%);}
 .pv-band i{position:absolute;z-index:1;top:50%;left:var(--pv-r);width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;
   background:var(--white);box-shadow:0 0 0 5px var(--pv-g),0 3px 10px rgba(0,0,0,.5);transition:left 1s var(--ease);}
-.pv-lv{display:flex;justify-content:space-between;margin-top:.65rem;font-size:.72rem;color:rgba(255,255,255,.6);}
-.pv-acts{list-style:none;margin:0;padding:1.15rem 0 0;display:grid;gap:.72rem;}
-.pv-acts li{font-size:.92rem;line-height:1.45;color:rgba(255,255,255,.92);}
-.pv-acts li,.pv-hand{position:relative;padding-left:2.15rem;}
-.pv-acts li::before,.pv-hand::before{content:"";position:absolute;left:0;top:-1px;width:22px;height:22px;border-radius:50%;background:var(--pv-g);}
-.pv-acts li::after,.pv-hand::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:10px;border:solid var(--pv-a);
-  border-width:0 2px 2px 0;transform:rotate(45deg);}
-.pv-hand::before{background:var(--indigo-tint);}
-.pv-hand::after{border-color:var(--indigo);}
-div.pv-acts{gap:1.25rem;}
+.pv-lv{display:flex;justify-content:space-between;margin-top:.65rem;font-size:.75rem;color:rgba(255,255,255,.66);}
+/* Storm: the desk chooses who gets the warning */
+.pv-pk{display:flex;flex-direction:column;justify-content:center;gap:.8rem;}
 .pv-pick{margin:0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;}
 .pv-pick .pv-k{margin:0;}
 .pv-ppl{display:flex;flex-wrap:wrap;gap:.5rem;}
 .pv-p{font:inherit;font-size:.88rem;font-weight:600;min-height:44px;padding:0 1.05rem 0 .8rem;cursor:pointer;
   display:inline-flex;align-items:center;gap:.55rem;border-radius:var(--r-pill);border:1px solid rgba(255,255,255,.24);
-  background:none;color:rgba(255,255,255,.74);
+  background:none;color:rgba(255,255,255,.78);
   transition:color .3s var(--ease),background .3s var(--ease),border-color .3s var(--ease);}
 .pv-p::before{content:"";width:16px;height:16px;flex:none;border-radius:50%;border:1.5px solid currentColor;}
 .pv-p[aria-pressed="true"]{color:var(--near-black);background:var(--pv-a);border-color:transparent;}
@@ -798,12 +807,26 @@ div.pv-acts{gap:1.25rem;}
   border-width:0 2px 2px 0;transform:rotate(45deg);}
 .pv-send{margin:0;display:flex;align-items:center;gap:.6rem;font-size:.92rem;font-weight:600;}
 .pv-send::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--pv-a);box-shadow:0 0 0 4px var(--pv-g);}
+/* What the desk is told */
+.pv-acts{list-style:none;margin:0;padding:1.15rem 0 .1rem;display:grid;gap:.72rem;align-content:start;}
+.pv-acts li{font-size:.92rem;line-height:1.45;color:rgba(255,255,255,.92);}
+.pv-acts li,.pv-hand{position:relative;padding-left:2.15rem;}
+.pv-acts li::before,.pv-hand::before{content:"";position:absolute;left:0;top:-1px;width:22px;height:22px;border-radius:50%;background:var(--pv-g);}
+.pv-acts li::after,.pv-hand::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:10px;border:solid var(--pv-a);
+  border-width:0 2px 2px 0;transform:rotate(45deg);}
+.pv-hand::before{background:var(--indigo-tint);}
+.pv-hand::after{border-color:var(--indigo);}
 
-.pv-note{margin:1.5rem 0 0;display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 2rem;font-size:.82rem;color:var(--body-gray);}
-.pv-note span:first-child{max-width:44rem;}
+/* Under the stage: the page's italic closing line, a way forward, and the small print */
+.pv-close{margin:2.8rem 0 0;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.3rem 2.5rem;}
+.pv-close p{margin:0;flex:1 1 24rem;max-width:46rem;font-family:var(--serif);font-style:italic;
+  font-size:clamp(1.08rem,1.9vw,1.32rem);line-height:1.45;color:var(--near-black);}
+.pv-close .btn{flex:none;}
+.pv-note{margin:1.5rem 0 0;padding-top:1.1rem;border-top:1px solid var(--border-gray);display:flex;flex-wrap:wrap;
+  justify-content:space-between;gap:.4rem 2rem;font-size:.82rem;color:var(--body-gray);}
 .pv-note span:last-child{font-style:italic;}
 
-/* Choreography: only when JS says so */
+/* Choreography: only when the script says so */
 .pv-wait .pv-a{opacity:0;}
 .pv-wait .pv-dr{stroke-dashoffset:1;}
 .pv-play .pv-a{animation:pv-in .7s var(--ease) both;animation-delay:var(--pv-d,.25s);}
@@ -814,121 +837,136 @@ div.pv-acts{gap:1.25rem;}
 .pv-thread>:nth-child(1){--pv-d:.55s;}
 .pv-thread>:nth-child(2){--pv-d:1.3s;}
 .pv-thread>:nth-child(3){--pv-d:2.05s;}
-.pv-acts>:nth-child(1){--pv-d:.9s;}
-.pv-acts>:nth-child(2){--pv-d:1.3s;}
+.pv-acts>:nth-child(1),.pv-pk>:nth-child(1){--pv-d:.9s;}
+.pv-acts>:nth-child(2),.pv-pk>:nth-child(2){--pv-d:1.3s;}
 .pv-acts>:nth-child(3){--pv-d:1.7s;}
 
 @media(max-width:1000px){
   .pv-sides{grid-template-columns:1fr;}
-  .pv-used .pv-tabs{position:sticky;top:74px;z-index:6;box-shadow:0 14px 30px rgba(0,0,0,.5);}
 }
 @media(max-width:700px){
-  .pv-stage{padding:.6rem;}
+  /* Phones: the guest's text comes straight after the status board; the route sketch closes the stage. */
+  .pv-stage{display:flex;flex-direction:column;padding:.6rem;}
+  .pv-event{display:contents;}
+  .pv-event::after{display:none;}   /* a pseudo-element outlives display:contents; the wash moves to .pv-info */
+  .pv-info{order:1;padding:1.4rem .7rem .9rem;}
+  .pv-info::before{display:block;z-index:-1;left:-.6rem;width:92%;}
+  .pv-wire{order:2;margin:.1rem .7rem .8rem;}
+  .pv-sides{order:3;}
+  .pv-map{order:4;max-width:none;margin:1.1rem 0 .7rem;}
+  .pv-map::before{left:0;top:0;width:100%;height:100%;margin:0;border-radius:14px;
+    background:repeating-radial-gradient(circle at 88% 53.6%,transparent 0 63px,rgba(255,255,255,.07) 63px 64px);
+    -webkit-mask:radial-gradient(circle 500px at 88% 53.6%,#000 8%,transparent 74%);mask:radial-gradient(circle 500px at 88% 53.6%,#000 8%,transparent 74%);}
   .pv-tab{flex-direction:column;gap:.25rem;min-height:60px;padding:.45rem .1rem .6rem;font-size:.76rem;}
   .pv-x{display:none;}
-  .pv-event{grid-template-columns:1fr;padding:1.5rem .7rem .7rem;}
-  .pv-flap{gap:4px;}
-  .pv-det{min-height:3em;}
-  .pv-map{max-width:none;}
-  .pv-wire{margin:.1rem .7rem .8rem;}
-  .pv-side{padding:1.2rem 1.1rem 1.1rem;}
+  .pv-flap{gap:4px;margin-bottom:1rem;}
+  .pv-side{padding:1.2rem 1.1rem;}
   .pv-b{max-width:96%;}
   .pv-meta{grid-template-columns:1fr;}
   .pv-st{margin-left:0;}
+  .pv-desk .pv-cap>span{justify-items:start;}
+  .pv-close{margin-top:2.2rem;}
 }
 
-/* ---------- PROOF ---------- */
-.pf-watch{position:relative;overflow:hidden;padding:2.3rem 2.5rem 2.2rem;border-radius:var(--r-product);color:var(--white);
+/* ---------- PROOF POINTS ---------- */
+.pf-n{flex:none;font-family:var(--serif);font-size:.95rem;font-weight:700;font-variant-numeric:lining-nums;line-height:1.5;color:var(--indigo);}
+/* 01, drawn: the check schedule */
+.pf-watch{position:relative;overflow:hidden;padding:2.3rem 2.5rem 2.1rem;border-radius:var(--r-product);color:var(--white);
   background:radial-gradient(720px 380px at 10% 0,rgba(79,70,229,.28),transparent 64%),var(--dark-2);
-  box-shadow:0 40px 80px -26px rgba(9,9,11,.55),var(--glow-card);}
-.pf-top{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:1.6rem 3rem;margin-bottom:2rem;}
-.pf-top>div:first-child{max-width:36rem;}
-.pf-watch .h3{margin-bottom:.7rem;font-size:clamp(1.4rem,2.5vw,1.95rem);color:var(--white);text-wrap:balance;}
-.pf-watch p{margin:0;font-size:.98rem;color:rgba(255,255,255,.72);}
-.pf-k{display:block;margin-bottom:.7rem;font-size:.7rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--indigo-light);}
-.pf-k+.pv-flap{margin:0;}
-.pf-flap span{flex:none;width:32px;height:42px;font-size:1.15rem;color:#FBBF24;}
-.pf-early .pf-flap span{color:var(--white);}
-
-.pf-line{list-style:none;margin:0;padding:0;display:flex;}
-.pf-line li{position:relative;flex:1 1 0;min-width:0;padding-bottom:2.2rem;}
+  box-shadow:0 30px 60px -30px rgba(9,9,11,.55),var(--glow-card);}
+.pf-top{display:flex;gap:1.1rem;align-items:baseline;max-width:44rem;margin-bottom:2.1rem;}
+.pf-watch .pf-n{color:var(--indigo-light);}
+.pf-watch .h3{margin-bottom:.6rem;font-size:clamp(1.4rem,2.5vw,1.95rem);color:var(--white);text-wrap:balance;}
+.pf-watch p{margin:0;font-size:.98rem;line-height:1.55;color:rgba(255,255,255,.76);}
+.pf-track{display:grid;grid-template-columns:8.5rem minmax(0,1fr);gap:.9rem 1.6rem;align-items:center;}
+.pf-track+.pf-track{margin-top:1.6rem;padding-top:1.6rem;border-top:1px dashed rgba(255,255,255,.14);}
+.pf-k{font-size:.75rem;font-weight:600;letter-spacing:.12em;line-height:1.5;text-transform:uppercase;color:var(--indigo-light);text-wrap:balance;}
+.pf-late .pf-k{color:#FCD34D;}
+.pf-line{list-style:none;margin:0;padding:0 0 10px;display:flex;align-items:flex-end;}
+.pf-line li{position:relative;flex:1 1 0;min-width:4.6rem;}
 .pf-line li:nth-child(1){flex-grow:2.5;}
 .pf-line li:nth-child(2){flex-grow:1.3;}
-.pf-line li:last-child{flex-grow:.8;}
-.pf-line li::before{content:"";position:absolute;left:7px;right:-7px;top:calc(5.2rem + 6px);height:2px;
+.pf-line li::before{content:"";position:absolute;left:7px;right:-7px;bottom:6px;height:2px;
   background:linear-gradient(90deg,var(--indigo-light),var(--violet-light));}
-.pf-line b{display:flex;flex-direction:column;justify-content:flex-end;height:4.2rem;font-family:var(--serif);
-  font-variant-numeric:lining-nums;font-size:clamp(2rem,3.5vw,2.9rem);letter-spacing:-.03em;line-height:1;}
-.pf-line small{margin-top:.4rem;font-family:var(--sans);font-size:.7rem;font-weight:600;letter-spacing:.12em;
-  text-transform:uppercase;color:rgba(255,255,255,.64);}
-.pf-line i{position:relative;z-index:1;display:block;width:14px;height:14px;margin-top:1rem;border-radius:50%;
+.pf-line b{display:block;font-family:var(--serif);font-variant-numeric:lining-nums;font-size:clamp(1.9rem,3.4vw,2.8rem);
+  letter-spacing:-.03em;line-height:1;}
+.pf-line small{display:block;margin-top:.4rem;font-family:var(--sans);font-size:.75rem;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:rgba(255,255,255,.68);}
+.pf-line i{position:relative;z-index:1;display:block;width:14px;height:14px;margin-top:.95rem;border-radius:50%;
   background:var(--indigo-light);box-shadow:0 0 0 5px rgba(129,140,248,.22);}
-.pf-line span{position:absolute;left:0;bottom:0;white-space:nowrap;font-size:.82rem;color:rgba(255,255,255,.66);}
-.pf-line .pf-dep b{font-family:var(--sans);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;}
-.pf-dep i{width:34px;height:34px;margin:calc(1rem - 10px) 0 0 -10px;display:grid;place-items:center;background:var(--white);
+.pf-line .pf-dep{flex:0 0 auto;min-width:0;margin-left:.9rem;}
+.pf-line li:nth-child(4)::before{right:calc(-.9rem - 7px);}
+.pf-line .pf-dep::before{display:none;}
+.pf-line .pf-dep b{font-family:var(--sans);font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;}
+.pf-dep i{width:34px;height:34px;margin:.75rem 0 -10px -10px;display:grid;place-items:center;background:var(--white);
   box-shadow:0 0 0 6px rgba(255,255,255,.14);}
 .pf-dep svg{width:18px;height:18px;fill:var(--dark-2);}
-.pf-line .pf-dep::before,.pf-line .pf-late::before{background:repeating-linear-gradient(90deg,#FBBF24 0 6px,transparent 6px 12px);}
-.pf-line li:last-child::before{-webkit-mask:linear-gradient(90deg,#000,transparent);}
-.pf-late{transition:opacity .8s var(--ease);}
-.pf-line .pf-late b{font-size:clamp(1.4rem,2.2vw,1.8rem);color:#FBBF24;}
-.pf-late i{background:#FBBF24;box-shadow:0 0 0 5px rgba(251,191,36,.2);}
-.pf-late span{color:#FCD34D;}
-.pf-early .pf-late{opacity:.28;}
-.pf-late:nth-child(7){transition-delay:.25s;}
-.pf-late:nth-child(8){transition-delay:.5s;}
-.pf-watch.pv-in .pf-c,.pf-watch.pv-in .pf-dep{animation:pv-in .6s var(--ease) both;}
-.pf-watch.pv-in li:nth-child(1){animation-delay:.35s;}
-.pf-watch.pv-in li:nth-child(2){animation-delay:.75s;}
-.pf-watch.pv-in li:nth-child(3){animation-delay:1.05s;}
-.pf-watch.pv-in li:nth-child(4){animation-delay:1.3s;}
-.pf-watch.pv-in li:nth-child(5){animation-delay:1.55s;}
-.pf-watch .pf-foot{margin-top:1.8rem;padding-top:1.3rem;border-top:1px solid rgba(255,255,255,.09);}
+.pf-again{display:flex;flex-wrap:wrap;align-items:center;gap:.9rem 1.5rem;}
+.pf-flap{margin:0;}
+.pf-flap span{flex:none;width:32px;height:42px;font-size:1.15rem;color:#FBBF24;}
+.pf-watch .pf-every{white-space:nowrap;font-size:.98rem;color:#FCD34D;transition:opacity .8s var(--ease);}
+.pf-every b{margin:0 .12em;font-family:var(--serif);font-variant-numeric:lining-nums;font-size:clamp(1.7rem,2.8vw,2.3rem);
+  letter-spacing:-.03em;line-height:1;color:#FBBF24;vertical-align:-.08em;}
+.pf-dots{flex:1 1 7rem;min-width:5rem;height:12px;transition:opacity .8s var(--ease) .25s;
+  background:radial-gradient(circle,#FBBF24 0 4.5px,transparent 5px) 0 50%/36px 12px repeat-x;
+  -webkit-mask:linear-gradient(90deg,#000 25%,transparent);mask:linear-gradient(90deg,#000 25%,transparent);}
+/* Before the board flips: the flight is still on time and the late track is asleep. */
+.pf-early .pf-flap span{color:var(--white);}
+.pf-early .pf-every,.pf-early .pf-dots{opacity:.3;}
+.pf-watch.pv-in .pf-line li{animation:pv-in .6s var(--ease) both;}
+.pf-watch.pv-in .pf-line li:nth-child(1){animation-delay:.35s;}
+.pf-watch.pv-in .pf-line li:nth-child(2){animation-delay:.75s;}
+.pf-watch.pv-in .pf-line li:nth-child(3){animation-delay:1.05s;}
+.pf-watch.pv-in .pf-line li:nth-child(4){animation-delay:1.3s;}
+.pf-watch.pv-in .pf-line li:nth-child(5){animation-delay:1.55s;}
+.pf-watch .pf-foot{margin-top:1.8rem;padding-top:1.3rem;border-top:1px solid rgba(255,255,255,.09);line-height:1.9;}
+.pf-s{padding:.22rem .6rem;border-radius:var(--r-pill);font-style:normal;font-size:.72rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;white-space:nowrap;}
+.pf-s1{color:#FBBF24;background:rgba(251,191,36,.16);}
+.pf-s2{color:#F87171;background:rgba(248,113,113,.17);}
+.pf-s3{color:#A78BFA;background:rgba(167,139,250,.18);}
 
-/* Ledger: the checkable token, set large */
+/* 02 to 07: the question, the short answer set large, then the detail */
 .pf-ledger{list-style:none;margin:3rem 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;column-gap:4.5rem;}
-.pf-ledger li{position:relative;display:grid;grid-template-columns:9.6rem minmax(0,1fr);gap:.4rem 1.2rem;align-items:start;
-  padding:1.7rem 0 1.9rem;border-top:1px solid var(--border-gray);}
+.pf-ledger li{position:relative;display:flex;gap:1.1rem;align-items:baseline;padding:1.6rem 0 1.9rem;border-top:1px solid var(--border-gray);}
 .pf-ledger li::before{content:"";position:absolute;left:0;top:-1px;width:2.4rem;height:2px;background:var(--grad-primary);
   transition:width .7s var(--ease);}
 .pf-ledger li:hover::before{width:100%;}
 .pf-ledger li:nth-child(even){transition-delay:.1s;}
-.pf-tok{margin:0;font-family:var(--serif);font-variant-numeric:lining-nums;font-weight:700;font-size:clamp(1.9rem,2.7vw,2.35rem);
-  letter-spacing:-.03em;line-height:1;color:var(--indigo);}
-.pf-tok small{display:block;margin-top:.55rem;font-family:var(--sans);font-size:.7rem;font-weight:600;letter-spacing:.12em;
-  line-height:1.4;text-transform:uppercase;color:var(--gray-500);}
-.pf-ledger .h3{margin:.25rem 0 .45rem;}
-.pf-ledger div p{margin:0;font-size:.95rem;color:var(--body-gray);}
-.pf-ledger a{font-weight:600;color:var(--indigo);text-decoration:underline;text-underline-offset:3px;}
+.pf-ledger li>div{min-width:0;}
+.pf-ledger .h3{margin:0 0 .55rem;font-size:clamp(1.12rem,1.5vw,1.26rem);}
+.pf-tok{margin:0 0 .6rem;font-family:var(--serif);font-variant-numeric:lining-nums;font-weight:700;
+  font-size:clamp(1.8rem,2.6vw,2.3rem);letter-spacing:-.03em;line-height:1.05;color:var(--indigo);}
+.pf-tok small{margin-left:.5rem;font-family:var(--sans);font-size:.75rem;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--gray-500);white-space:nowrap;}
+.pf-ledger p:last-child{margin:0;max-width:34rem;font-size:.95rem;line-height:1.6;color:var(--body-gray);}
+.pf-ledger a{display:inline-block;margin:-.8rem 0;padding:.8rem 0;font-weight:600;color:var(--indigo);
+  text-decoration:underline;text-underline-offset:3px;}
 
 .pf-invite{margin-top:1rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.4rem 2.5rem;
   padding:1.9rem 2.2rem;border-radius:var(--r-product);background:var(--grad-subtle);border:1px solid var(--border-gray);}
-.pf-invite p{margin:0;flex:1 1 24rem;max-width:44rem;font-family:var(--serif);font-style:italic;
+.pf-invite p{margin:0;flex:1 1 20rem;max-width:44rem;font-family:var(--serif);font-style:italic;
   font-size:clamp(1.08rem,1.9vw,1.32rem);line-height:1.45;color:var(--near-black);}
 .pf-invite .btn{flex:none;}
 
-@media(max-width:960px){
+@media(max-width:900px){
   .pf-ledger{grid-template-columns:1fr;}
-  .pf-watch{display:grid;grid-template-columns:1fr 1fr;gap:0 2.5rem;align-items:center;}
-  .pf-top{margin:0;}
-  .pf-line{grid-area:1/2/3/3;flex-direction:column;}
-  .pf-line li,.pf-line li:nth-child(n){flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:0 .9rem;min-height:3.5rem;padding:0 0 0 2.5rem;}
-  .pf-line li::before{left:6px;right:auto;top:50%;width:2px;height:100%;background:linear-gradient(180deg,var(--indigo-light),var(--violet-light));}
-  .pf-line .pf-dep::before,.pf-line .pf-late::before{background:repeating-linear-gradient(180deg,#FBBF24 0 6px,transparent 6px 12px);}
-  .pf-line li:last-child::before{-webkit-mask:linear-gradient(180deg,#000,transparent);}
-  .pf-line b{height:auto;flex-direction:row;align-items:baseline;gap:.45rem;min-width:7.4rem;font-size:1.75rem;}
-  .pf-line .pf-late b{font-size:1.4rem;}
-  .pf-line small{margin:0;}
-  .pf-line i{position:absolute;left:0;top:50%;margin:-7px 0 0;}
-  .pf-dep i{margin:-17px 0 0 -10px;}
-  .pf-line span{position:static;white-space:normal;}
 }
 @media(max-width:700px){
-  .pf-watch{display:block;padding:1.7rem 1.3rem 1.6rem;}
-  .pf-top{margin-bottom:1.6rem;}
-  .pf-ledger li{grid-template-columns:1fr;padding:1.5rem 0 1.6rem;}
-  .pf-tok small{display:inline;margin-left:.6rem;}
+  .pf-watch{padding:1.7rem 1.3rem 1.6rem;}
+  .pf-top{gap:.8rem;margin-bottom:1.7rem;}
+  .pf-track{grid-template-columns:1fr;}
+  .pf-line li:not(.pf-dep){flex-grow:1;min-width:0;}
+  .pf-line .pf-dep{margin-left:0;}
+  .pf-line li:nth-child(4)::before{right:-7px;}
+  .pf-line small{letter-spacing:.04em;}
+  /* The plane marks departure; the word stays for screen readers. */
+  .pf-line .pf-dep b{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+  .pf-ledger li{padding:1.4rem 0 1.6rem;gap:.8rem;}
   .pf-invite{padding:1.6rem 1.4rem;}
+}
+@media(max-width:350px){
+  .pf-x{display:none;}
 }
 @media(prefers-reduced-motion:reduce){
   #product *,#proof *{animation-delay:0s!important;transition-delay:0s!important;}
@@ -965,7 +1003,7 @@ div.pv-acts{gap:1.25rem;}
       <p class="sub">Give every guest a travel assistant from your hotel. Live flight and weather alerts, help the moment plans change, and a ride to your door even when the flight lands somewhere else. All by text message.</p>
       <div class="hero-cta">
         <a class="btn btn-primary" href="#demo">Book a demo</a>
-        <a class="btn btn-ghost" href="#solution">See how it works</a>
+        <a class="btn btn-ghost" href="#product">See how it works</a>
       </div>
       <p class="hero-note"><span class="dot"></span> Live within a week. No app for guests, no hardware for you.</p>
       <a class="hero-byline" href="#founder">
@@ -1140,6 +1178,7 @@ div.pv-acts{gap:1.25rem;}
   </div>
 </section>
 
+<!-- THE PRODUCT: a simulator. The visitor picks a disruption; the guest's text and the front desk's view react. -->
 <section class="section light" id="product" aria-labelledby="pv-h">
  <svg class="pv-sprite" width="0" height="0" aria-hidden="true">
   <symbol id="pv-i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
@@ -1154,9 +1193,10 @@ div.pv-acts{gap:1.25rem;}
  </svg>
  <div class="wrap">
   <div class="head pv-rv">
-   <span class="eyebrow">See it work</span>
-   <h2 class="h2" id="pv-h">Pick what goes wrong</h2>
-   <p class="sub">Choose a disruption and watch both sides react: the text your guest receives, and what your front desk sees in the Alerts tab.</p>
+   <span class="eyebrow">The product</span>
+   <!-- Two wordings: .pv-j when the switch below works, .pv-nj when it cannot (no script). -->
+   <h2 class="h2" id="pv-h"><span class="pv-j">Pick what goes wrong</span><span class="pv-nj">One diverted flight, seen from both sides</span></h2>
+   <p class="sub"><span class="pv-j">Choose a disruption and watch both sides react: the text your guest receives, and what your front desk sees in its portal.</span><span class="pv-nj">The text your guest receives, and what your front desk sees in its portal.</span></p>
   </div>
 
   <div class="pv-stage pv-rv" id="pv-stage" data-pv-scene="diverted">
@@ -1169,18 +1209,24 @@ div.pv-acts{gap:1.25rem;}
    <p class="pv-still">Shown here: a diverted flight</p>
    <p class="pv-sr" id="pv-sr" aria-live="polite"></p>
 
+   <!-- Scene switching: [data-pv-for] parts are removed from the layout when their scene is off;
+        [data-pv-in] parts share one cell of a .pv-stack and are only hidden, so every scene is the same height. -->
    <div class="pv-event">
     <div class="pv-info">
-     <p class="pv-src"><i></i><span data-pv-for="delayed cancelled diverted">Live status, from airline data</span><span data-pv-for="storm">Issued by the National Weather Service</span></p>
-     <p class="pv-code" data-pv-for="delayed">B6 1234 <small>JFK to BOS</small></p>
-     <p class="pv-code" data-pv-for="cancelled">UA 2381 <small>ORD to MHT, Fri Nov 14</small></p>
-     <p class="pv-code" data-pv-for="diverted">WN 1532 <small>BWI to MHT</small></p>
-     <p class="pv-code" data-pv-for="storm">Winter storm <small>Your property's area</small></p>
+     <p class="pv-src"><i></i><span class="pv-stack"><span data-pv-in="delayed cancelled diverted">Live status, from airline data</span><span data-pv-in="storm">National Weather Service</span></span></p>
+     <div class="pv-stack">
+      <p class="pv-code" data-pv-in="delayed">B6 1234 <small>JFK to BOS</small></p>
+      <p class="pv-code" data-pv-in="cancelled">UA 2381 <small>ORD to MHT</small></p>
+      <p class="pv-code" data-pv-in="diverted">WN 1532 <small>BWI to MHT</small></p>
+      <p class="pv-code" data-pv-in="storm">Winter storm <small>Your area</small></p>
+     </div>
      <div class="pv-flap" aria-hidden="true"><span>D</span><span>I</span><span>V</span><span>E</span><span>R</span><span>T</span><span>E</span><span>D</span><span>&nbsp;</span></div>
-     <p class="pv-det pv-a" data-pv-for="delayed">Delayed about 2 hrs. Now departing 9:40 PM.</p>
-     <p class="pv-det pv-a" data-pv-for="cancelled">Airline data shows this flight as cancelled.</p>
-     <p class="pv-det pv-a" data-pv-for="diverted">Diverted. Now landing at Boston Logan (BOS).</p>
-     <p class="pv-det pv-a" data-pv-for="storm">Winter Storm Warning, until Sat 7:00 AM.</p>
+     <div class="pv-stack">
+      <p class="pv-det pv-a" data-pv-in="delayed">Maya is flying in to stay with you. The flight now leaves at 9:40 PM, about 2 hrs late.</p>
+      <p class="pv-det pv-a" data-pv-in="cancelled">Daniel is due to fly in on Fri Nov 14. Airline data shows the flight as cancelled.</p>
+      <p class="pv-det pv-a" data-pv-in="diverted">Sofia is flying in to stay with you. The flight is now landing at Boston Logan (BOS).</p>
+      <p class="pv-det pv-a" data-pv-in="storm">A Winter Storm Warning covers your area until Sat 7:00 AM.</p>
+     </div>
     </div>
     <div class="pv-map" aria-hidden="true">
      <svg viewBox="0 0 400 220" fill="none">
@@ -1234,78 +1280,91 @@ div.pv-acts{gap:1.25rem;}
    <div class="pv-sides">
     <div class="pv-side pv-guest">
      <div class="pv-cap"><h3>Your guest receives</h3><span><img src="assets/logo.svg" alt="" width="24" height="24">Your hotel, via Butler</span></div>
-     <div class="pv-thread" data-pv-for="delayed">
-      <p class="pv-b pv-a">Hi Maya, airline data shows B6 1234 JFK-BOS <mark>delayed about 2 hrs</mark>, now departing 9:40 PM. Please confirm with your airline. Reply ASSIST if you need help with plans.</p>
-      <p class="pv-key pv-a">Maya replies with one word <b>ASSIST</b></p>
-      <p class="pv-b pv-a">We're on it. We'll tell the front desk you're landing late so your room is ready, and we can have a car waiting at Logan.</p>
+     <div class="pv-stack pv-threads">
+      <div class="pv-thread" data-pv-in="delayed">
+       <p class="pv-b pv-a">Hi Maya, airline data shows B6 1234 JFK-BOS <mark>delayed about 2 hrs</mark>, now departing 9:40 PM. Please confirm with your airline. Reply ASSIST if you need help with plans.</p>
+       <p class="pv-key pv-a">Maya replies with one word <b>ASSIST</b></p>
+       <p class="pv-hand pv-a"><b>Our team picks it up</b>, at any hour: your front desk is told Maya is landing late, and a car can be waiting at Logan.</p>
+      </div>
+      <div class="pv-thread" data-pv-in="cancelled">
+       <p class="pv-b pv-a">Hi Daniel, airline data shows UA 2381 ORD-MHT on Fri Nov 14 as <mark>CANCELLED</mark>. Please confirm with your airline before leaving for the airport. Reply ASSIST if you need help changing plans.</p>
+       <p class="pv-key pv-a">Daniel replies with one word <b>ASSIST</b></p>
+       <p class="pv-hand pv-a"><b>Our team picks it up</b>, at any hour: a rebooked car, a late arrival, an extra night.</p>
+      </div>
+      <div class="pv-thread" data-pv-in="diverted">
+       <p class="pv-b pv-a">Hi Sofia, airline data shows WN 1532 BWI-MHT has been <mark>DIVERTED</mark> to Boston Logan (BOS). Reply ASSIST and we'll arrange a car from Logan to the hotel.</p>
+       <p class="pv-key pv-a">Sofia replies with one word <b>ASSIST</b></p>
+       <p class="pv-hand pv-a"><b>Our team picks it up</b>, at any hour, and arranges a car from Logan to the hotel.</p>
+      </div>
+      <div class="pv-thread" data-pv-in="storm">
+       <p class="pv-b pv-a" id="pv-wx" data-pv-n="3">Hi <span id="pv-nm">Priya</span>, the National Weather Service has issued a <mark>Winter Storm Warning</mark> for the area until Sat 7:00 AM. Allow extra time if you are driving.</p>
+       <p class="pv-hand pv-a">One text each, only to the guests your front desk picks: <b id="pv-to">Maya, Daniel and Priya</b>.</p>
+      </div>
      </div>
-     <div class="pv-thread" data-pv-for="cancelled">
-      <p class="pv-b pv-a">Hi Daniel, airline data shows UA 2381 ORD-MHT on Fri Nov 14 as <mark>CANCELLED</mark>. Please confirm with your airline before leaving for the airport. Reply ASSIST if you need help changing plans.</p>
-      <p class="pv-key pv-a">Daniel replies with one word <b>ASSIST</b></p>
-      <p class="pv-hand pv-a"><b>Our team picks it up</b>, at any hour: a rebooked car, a late arrival, an extra night.</p>
-     </div>
-     <div class="pv-thread" data-pv-for="diverted">
-      <p class="pv-b pv-a">Hi Sofia, airline data shows WN 1532 BWI-MHT has been <mark>DIVERTED</mark> to Boston Logan (BOS). Reply ASSIST and we'll arrange a car from Logan to the hotel.</p>
-      <p class="pv-key pv-a">Sofia replies with one word <b>ASSIST</b></p>
-      <p class="pv-hand pv-a"><b>Our team picks it up</b>, at any hour, and arranges a car from Logan to the hotel.</p>
-     </div>
-     <div class="pv-thread" data-pv-for="storm">
-      <p class="pv-b pv-a" id="pv-wx" data-pv-n="3">Hi <span id="pv-nm">Priya</span>, the National Weather Service has issued a <mark>Winter Storm Warning</mark> for the area until Sat 7:00 AM. Allow extra time if you are driving.</p>
-      <p class="pv-hand pv-a">One text each, only to the guests your front desk picks: <b id="pv-to">Maya, Daniel and Priya</b>.</p>
-     </div>
-     <ul class="pv-chips">
-      <li>No app</li><li>Sent once</li><li>Quiet hours</li><li>STOP any time</li>
-     </ul>
     </div>
 
     <div class="pv-side pv-desk">
-     <div class="pv-cap"><h3>Your front desk sees</h3><span>Partner Portal, Alerts tab</span></div>
-     <div class="pv-who pv-a" data-pv-for="delayed"><span class="pv-av" aria-hidden="true">M</span><p><b>Maya</b><em class="pv-st">Delayed</em><small>B6 1234, JFK to BOS</small></p></div>
-     <div class="pv-who pv-a" data-pv-for="cancelled"><span class="pv-av" aria-hidden="true">D</span><p><b>Daniel</b><em class="pv-st">Cancelled</em><small>UA 2381, ORD to MHT</small></p></div>
-     <div class="pv-who pv-a" data-pv-for="diverted"><span class="pv-av" aria-hidden="true">S</span><p><b>Sofia</b><em class="pv-st">Diverted</em><small>WN 1532, BWI to MHT, now landing at BOS</small></p></div>
-     <div class="pv-who pv-a" data-pv-for="storm"><span class="pv-av" aria-hidden="true"><svg class="pv-ic"><use href="#pv-i-snow"/></svg></span><p><b>Winter Storm Warning</b><em class="pv-st">Ready to send</em><small>National Weather Service, until Sat 7:00 AM</small></p></div>
-     <div class="pv-meta">
-      <div class="pv-wx">
-       <span class="pv-k">Airport weather</span>
-       <p data-pv-for="delayed"><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-rain"/></svg>JFK <i>Rain</i></span><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-cloud"/></svg>BOS <i>Cloud</i></span></p>
-       <p data-pv-for="cancelled"><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-snow"/></svg>ORD <i>Snow</i></span><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-cloud"/></svg>MHT <i>Cloud</i></span></p>
-       <p data-pv-for="diverted"><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-sun"/></svg>BWI <i>Clear</i></span><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-fog"/></svg>MHT <i>Fog</i></span></p>
-       <p data-pv-for="storm"><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-snow"/></svg>MHT <i>Snow</i></span><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-snow"/></svg>BOS <i>Snow</i></span></p>
+     <div class="pv-cap"><h3>Your front desk sees</h3><span class="pv-stack"><span data-pv-in="delayed cancelled diverted">Partner Portal, Alerts tab</span><span data-pv-in="storm">Partner Portal</span></span></div>
+     <div class="pv-stack">
+      <div class="pv-who pv-a" data-pv-in="delayed"><span class="pv-av" aria-hidden="true">M</span><p><b>Maya</b><em class="pv-st">Delayed</em><small>B6 1234, JFK to BOS</small></p></div>
+      <div class="pv-who pv-a" data-pv-in="cancelled"><span class="pv-av" aria-hidden="true">D</span><p><b>Daniel</b><em class="pv-st">Cancelled</em><small>UA 2381, ORD to MHT</small></p></div>
+      <div class="pv-who pv-a" data-pv-in="diverted"><span class="pv-av" aria-hidden="true">S</span><p><b>Sofia</b><em class="pv-st">Diverted</em><small>WN 1532, BWI to MHT, now landing at BOS</small></p></div>
+      <div class="pv-who pv-a" data-pv-in="storm"><span class="pv-av" aria-hidden="true"><svg class="pv-ic"><use href="#pv-i-snow"/></svg></span><p><b>Winter Storm Warning</b><em class="pv-st">Ready to send</em><small>National Weather Service, until Sat 7:00 AM</small></p></div>
+     </div>
+     <div class="pv-stack">
+      <div class="pv-meta" data-pv-in="delayed cancelled diverted">
+       <div class="pv-wx">
+        <span class="pv-k">Airport weather</span>
+        <div class="pv-stack">
+        <p data-pv-in="delayed"><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-rain"/></svg>JFK <i>Rain</i></span><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-cloud"/></svg>BOS <i>Cloud</i></span></p>
+        <p data-pv-in="cancelled"><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-snow"/></svg>ORD <i>Snow</i></span><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-cloud"/></svg>MHT <i>Cloud</i></span></p>
+        <p data-pv-in="diverted"><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-sun"/></svg>BWI <i>Clear</i></span><span><svg class="pv-ic" aria-hidden="true"><use href="#pv-i-fog"/></svg>MHT <i>Fog</i></span></p>
+        </div>
+       </div>
+       <div class="pv-rk">
+        <span class="pv-k">Risk band <b data-pv-for="cancelled diverted">High</b><b data-pv-for="delayed">Elevated</b></span>
+        <div class="pv-band" aria-hidden="true"><i></i></div>
+        <div class="pv-lv" aria-hidden="true"><span>Low</span><span>High</span></div>
+       </div>
       </div>
-      <div class="pv-rk">
-       <span class="pv-k">Risk band <b data-pv-for="cancelled diverted">High</b><b data-pv-for="delayed storm">Elevated</b></span>
-       <div class="pv-band" aria-hidden="true"><i></i></div>
-       <div class="pv-lv" aria-hidden="true"><span>Low</span><span>May arrive late</span></div>
+      <div class="pv-meta pv-pk" data-pv-in="storm">
+       <p class="pv-pick pv-a"><span class="pv-k">Choose who gets it</span><span class="pv-send" id="pv-n" aria-live="polite">Ready to send to 3 guests</span></p>
+       <div class="pv-ppl pv-a" role="group" aria-label="Guests who get the warning">
+        <button type="button" class="pv-p" aria-pressed="true">Maya</button><button type="button" class="pv-p" aria-pressed="true">Daniel</button><button type="button" class="pv-p" aria-pressed="true">Priya</button><button type="button" class="pv-p" aria-pressed="false">Sofia</button>
+       </div>
       </div>
      </div>
-     <ul class="pv-acts" data-pv-for="delayed">
-      <li class="pv-a">Front desk told: Maya is landing late</li>
-      <li class="pv-a">Room kept ready. Nobody marked a no-show</li>
-      <li class="pv-a">The pickup moves with the flight</li>
-     </ul>
-     <ul class="pv-acts" data-pv-for="cancelled">
-      <li class="pv-a">Listed in your Alerts tab with live status</li>
-      <li class="pv-a">The pickup moves with the flight</li>
-      <li class="pv-a">If Daniel replies ASSIST, our team picks it up</li>
-     </ul>
-     <ul class="pv-acts" data-pv-for="diverted">
-      <li class="pv-a">Front desk told: Sofia is running late</li>
-      <li class="pv-a">Room kept ready. Nobody marked a no-show</li>
-      <li class="pv-a">Pickup arranged from Logan (BOS) to the hotel</li>
-     </ul>
-     <div class="pv-acts" data-pv-for="storm">
-      <p class="pv-pick pv-a"><span class="pv-k">Choose who gets it</span><span class="pv-send" id="pv-n" aria-live="polite">Ready to send to 3 guests</span></p>
-      <div class="pv-ppl pv-a" role="group" aria-label="Guests who get the warning">
-       <button type="button" class="pv-p" aria-pressed="true">Maya</button><button type="button" class="pv-p" aria-pressed="true">Daniel</button><button type="button" class="pv-p" aria-pressed="true">Priya</button><button type="button" class="pv-p" aria-pressed="false">Sofia</button>
-      </div>
+     <div class="pv-stack">
+      <ul class="pv-acts" data-pv-in="delayed">
+       <li class="pv-a">Maya is landing late. Keep the room ready</li>
+       <li class="pv-a">Nobody is marked a no-show</li>
+       <li class="pv-a">The pickup moves with the flight</li>
+      </ul>
+      <ul class="pv-acts" data-pv-in="cancelled">
+       <li class="pv-a">Listed in your Alerts tab with live status</li>
+       <li class="pv-a">The pickup moves with the flight</li>
+       <li class="pv-a">If Daniel replies ASSIST, our team picks it up</li>
+      </ul>
+      <ul class="pv-acts" data-pv-in="diverted">
+       <li class="pv-a">Sofia is running late. Keep the room ready</li>
+       <li class="pv-a">Nobody is marked a no-show</li>
+       <li class="pv-a">A car is coming from Boston Logan, through our local limo partner</li>
+      </ul>
+      <ul class="pv-acts" data-pv-in="storm">
+       <li class="pv-a">It arrives in your portal ready to send</li>
+       <li class="pv-a">You choose which guests get it</li>
+       <li class="pv-a">Each guest gets one text, sent once</li>
+      </ul>
      </div>
-     <ul class="pv-chips">
-      <li>Every alert and request:</li><li>Logged</li><li>Answered</li><li>Tracked</li>
-     </ul>
     </div>
    </div>
   </div>
-  <p class="pv-note pv-rv"><span>Your portal has a demo mode too: simulate a cancelled flight or a winter storm and see exactly what guests receive before you go live.</span><span>Illustrative example. Guest names and flights are made up.</span></p>
+
+  <div class="pv-close pv-rv">
+   <p>One changed flight. One text, one word back, one car. And a room that is ready when your guest walks in.</p>
+   <a class="btn btn-primary" href="#demo">Book a demo</a>
+  </div>
+  <p class="pv-note pv-rv"><span>Your portal has a demo mode for testing this before you go live.</span><span>Illustrative example. Guest names and flights are made up, and the portal view is simplified.</span></p>
  </div>
 </section>
 
@@ -1496,74 +1555,85 @@ div.pv-acts{gap:1.25rem;}
   </div>
 </section>
 
+<!-- PROOF POINTS: seven hard questions, each answered with something the reader can check. -->
 <section class="section light lighter" id="proof" aria-labelledby="pf-h">
  <div class="wrap">
   <div class="head pf-rv">
-   <span class="eyebrow">Proof points</span>
-   <h2 class="h2" id="pf-h">Seven things you can check</h2>
-   <p class="sub">No slogans here. This is how Butler Button works, down to the minute, and there is a demo mode where you can try it first.</p>
+   <span class="eyebrow">Straight answers</span>
+   <h2 class="h2" id="pf-h">Ask us the hard questions</h2>
+   <p class="sub">Seven specifics, not slogans. Check each one for yourself.</p>
   </div>
 
   <div class="pf-watch pf-rv">
    <div class="pf-top">
+    <span class="pf-n">01</span>
     <div>
-     <span class="pf-k">The flight watch</span>
-     <h3 class="h3">Every guest flight is checked on a fixed schedule</h3>
+     <h3 class="h3">How often is a flight really checked?</h3>
      <p>Four checks before departure, closer together as the flight gets nearer. Once a flight is late, a fresh check every 30 minutes.</p>
     </div>
-    <div aria-hidden="true">
-     <span class="pf-k">Live status</span>
-     <div class="pv-flap pf-flap"><span>D</span><span>E</span><span>L</span><span>A</span><span>Y</span><span>E</span><span>D</span></div>
+   </div>
+   <div class="pf-track">
+    <span class="pf-k" id="pf-k1">Before departure</span>
+    <ol class="pf-line" aria-labelledby="pf-k1">
+     <li class="pf-c"><b>24<small>hours</small></b><i></i></li>
+     <li class="pf-c"><b>6<small>hours</small></b><i></i></li>
+     <li class="pf-c"><b>3<small>hours</small></b><i></i></li>
+     <li class="pf-c"><b>90<small>min<span class="pf-x">utes</span></small></b><i></i></li>
+     <li class="pf-dep"><b>Departure</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12c0 .9-.9 1.6-2 1.6h-4.6L11.2 20H9l2-6.4H6.6L4.9 16H3.2l1-4-1-4h1.7l1.7 2.4H11L9 4h2.2l4.2 6.4H20c1.1 0 2 .7 2 1.6z"/></svg></i></li>
+    </ol>
+   </div>
+   <div class="pf-track pf-late">
+    <span class="pf-k">Once a flight is late</span>
+    <div class="pf-again">
+     <div class="pv-flap pf-flap" aria-hidden="true"><span>D</span><span>E</span><span>L</span><span>A</span><span>Y</span><span>E</span><span>D</span></div>
+     <p class="pf-every">every <b>30</b> minutes</p>
+     <i class="pf-dots" aria-hidden="true"></i>
     </div>
    </div>
-   <ol class="pf-line" aria-label="When Butler checks a flight">
-    <li class="pf-c"><b>24<small>hours</small></b><i></i><span>before departure</span></li>
-    <li class="pf-c"><b>6<small>hours</small></b><i></i></li>
-    <li class="pf-c"><b>3<small>hours</small></b><i></i></li>
-    <li class="pf-c"><b>90<small>minutes</small></b><i></i></li>
-    <li class="pf-dep"><b>Departure</b><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12c0 .9-.9 1.6-2 1.6h-4.6L11.2 20H9l2-6.4H6.6L4.9 16H3.2l1-4-1-4h1.7l1.7 2.4H11L9 4h2.2l4.2 6.4H20c1.1 0 2 .7 2 1.6z"/></svg></i></li>
-    <li class="pf-late"><b>+30<small>minutes</small></b><i></i><span>once a flight is late, for as long as it is late</span></li>
-    <li class="pf-late"><b>+30<small>minutes</small></b><i></i></li>
-    <li class="pf-late"><b>+30<small>minutes</small></b><i></i></li>
-   </ol>
-   <p class="pf-foot">If the status turns to delayed, cancelled or diverted, the guest gets a text.</p>
+   <p class="pf-foot">If a check shows the flight <em class="pf-s pf-s1">delayed</em>, <em class="pf-s pf-s2">cancelled</em> or <em class="pf-s pf-s3">diverted</em>, the guest gets one text. It says &ldquo;airline data shows&rdquo; and asks them to confirm with their airline.</p>
   </div>
 
-  <ul class="pf-ledger">
+  <ol class="pf-ledger" start="2">
    <li class="pf-rv">
-    <p class="pf-tok">2<small>live sources</small></p>
-    <div><h3 class="h3">Named in every alert</h3>
-    <p>Flight alerts read &ldquo;airline data shows ...&rdquo; and ask the guest to confirm with their airline. Weather warnings come from the National Weather Service (US properties).</p></div>
+    <span class="pf-n">02</span>
+    <div><h3 class="h3">Where does the information come from?</h3>
+    <p class="pf-tok">2 sources</p>
+    <p>Live airline data for each flight number you add. National Weather Service warnings for your property's area (US properties).</p></div>
    </li>
    <li class="pf-rv">
-    <p class="pf-tok">STOP<small>at any time</small></p>
-    <div><h3 class="h3">Only guests who opted in</h3>
-    <p>Texts go only to guests who activated from your welcome email. Each alert is sent once and quiet hours are respected.</p></div>
+    <span class="pf-n">03</span>
+    <div><h3 class="h3">Will our guests feel pestered?</h3>
+    <p class="pf-tok">Opt-in</p>
+    <p>Texts go only to guests who activate from your welcome email. Each alert is sent once, quiet hours are respected, and a guest can reply STOP at any time.</p></div>
    </li>
    <li class="pf-rv">
-    <p class="pf-tok">ASSIST<small>one word</small></p>
-    <div><h3 class="h3">Our team, at any hour</h3>
-    <p>The guest replies with one word and our team picks it up: a rebooked car, a late arrival, an extra night. Any hour of the day or night.</p></div>
+    <span class="pf-n">04</span>
+    <div><h3 class="h3">Who picks up at 2am?</h3>
+    <p class="pf-tok">Any hour</p>
+    <p>Butler Button's team does. A guest replies ASSIST and we take it from there, at any hour of the day or night: a rebooked car, a late arrival, an extra night.</p></div>
    </li>
    <li class="pf-rv">
-    <p class="pf-tok">2am<small>even then</small></p>
-    <div><h3 class="h3">Everything on the record</h3>
-    <p>Every alert and request is logged, answered and tracked in your Partner Portal.</p></div>
+    <span class="pf-n">05</span>
+    <div><h3 class="h3">How do we know nothing was missed?</h3>
+    <p class="pf-tok">On record</p>
+    <p>Open your Partner Portal. Every alert and every request is there.</p></div>
    </li>
    <li class="pf-rv">
-    <p class="pf-tok">1 week<small>or less to go live</small></p>
-    <div><h3 class="h3">We set everything up</h3>
-    <p>Your property, nearest airports, local car partner, desk contacts and travel-alert settings, configured with you. No app for guests, no hardware for you.</p></div>
+    <span class="pf-n">06</span>
+    <div><h3 class="h3">Can we try it before our guests do?</h3>
+    <p class="pf-tok">Demo mode</p>
+    <p>Yes. Your portal has a demo mode, and trying it is step two of onboarding, just below. You can be live within a week.</p></div>
    </li>
    <li class="pf-rv">
-    <p class="pf-tok">8 years<small>in business aviation</small></p>
-    <div><h3 class="h3">Built by an aviation insider</h3>
-    <p>Ansh Dixit, Founder &amp; CEO, has handled diverted flights, natural disasters, and hundreds of passengers and crew at once. Diversions handled from Seattle to Papeete. <a href="#founder">Meet the founder</a></p></div>
+    <span class="pf-n">07</span>
+    <div><h3 class="h3">Who is behind it?</h3>
+    <p class="pf-tok">8 years <small>in business aviation</small></p>
+    <p>Ansh Dixit, Founder &amp; CEO. He has handled diverted flights, natural disasters, and hundreds of passengers and crew at once. <a href="#founder">Meet the founder</a></p></div>
    </li>
-  </ul>
+  </ol>
 
   <div class="pf-invite pf-rv">
-   <p>Do not take our word for it. In demo mode you simulate a cancelled flight or a winter storm and see exactly what your guests receive, before you go live.</p>
+   <p>Bring these questions, and your own, to a demo.</p>
    <a class="btn btn-primary" href="#demo">Book a demo</a>
   </div>
  </div>
@@ -2538,18 +2608,21 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
 })();
 </script>
 <script>
-/* Product simulator and proof reveals. Enhancement only: both sections are complete without it. */
+/* The product simulator and the proof-point reveals.
+   Enhancement only: both sections are complete without this script, and every
+   step below stops quietly if the markup it expects is not there. */
 (function(){
- var d=document,st=d.getElementById('pv-stage'),
+ var d=document,sec=d.getElementById('product'),st=d.getElementById('pv-stage'),
    calm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches),
    io='IntersectionObserver' in window,
-   all=function(s,r){return [].slice.call((r||d).querySelectorAll(s));},
+   all=function(s,r){return r?[].slice.call(r.querySelectorAll(s)):[];},
    id=function(s){return d.getElementById(s);},
    AZ='ACDEILMNORSTVWY',NB=' ';
 
  /* Split-flap board: each tile flips through a few letters, then lands. */
  function put(b,w){all('span',b).forEach(function(el,i){var c=w.charAt(i);el.textContent=c&&c!==' '?c:NB;});}
  function flap(b,w){
+  if(!b)return;
   var tk=b.pvT=(b.pvT||0)+1;
   if(calm){put(b,w);return;}
   all('span',b).forEach(function(el,i){
@@ -2565,8 +2638,9 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   });
  }
 
- if(st){
-  var tabs=all('.pv-tab',st),board=st.querySelector('.pv-flap'),sr=id('pv-sr'),
+ var board=st&&st.querySelector('.pv-flap'),tabs=all('.pv-tab',st);
+ if(sec&&board&&tabs.length){
+  var sr=id('pv-sr'),
     W={delayed:'DELAYED',cancelled:'CANCELLED',diverted:'DIVERTED',storm:'WARNING'},
     cur=st.getAttribute('data-pv-scene');
   var play=function(){
@@ -2576,7 +2650,9 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   };
   tabs.forEach(function(b){
    b.addEventListener('click',function(){
-    cur=b.getAttribute('data-pv');
+    var next=b.getAttribute('data-pv');
+    if(!W[next])return;
+    cur=next;
     st.setAttribute('data-pv-scene',cur);
     st.classList.add('pv-used');
     tabs.forEach(function(t){t.setAttribute('aria-pressed',t===b?'true':'false');});
@@ -2584,7 +2660,8 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
     play();flap(board,W[cur]);
    });
   });
-  st.classList.add('pv-on');
+  /* The switch works, so show it and the wording that mentions it. */
+  st.classList.add('pv-on');sec.classList.add('pv-js');
 
   /* First view: on time, then it goes wrong, once the board is well in view. */
   if(io&&!calm){
@@ -2599,7 +2676,7 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
 
   /* Storm: the desk picks who gets the warning, the guest side follows. */
   var ps=all('.pv-p',st),nm=id('pv-nm'),to=id('pv-to'),sd=id('pv-n'),wx=id('pv-wx');
-  ps.forEach(function(b){
+  if(nm&&to&&sd&&wx)ps.forEach(function(b){
    b.addEventListener('click',function(){
     b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')==='true'?'false':'true');
     var n=ps.filter(function(x){return x.getAttribute('aria-pressed')==='true';}).map(function(x){return x.textContent;}),c=n.length;
@@ -2611,17 +2688,18 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
   });
  }
 
- /* Scroll reveals, plus the proof timeline's status flip. */
- var rv=all('.pv-rv,.pf-rv'),pw=d.querySelector('.pf-watch'),pb=pw&&pw.querySelector('.pf-flap');
- if(io&&rv.length){
+ /* Scroll reveals, plus the proof schedule's status flip. With reduced motion
+    nothing is ever hidden: the sections simply stand as they are. */
+ var rv=all('.pv-rv,.pf-rv',d),pw=d.querySelector('.pf-watch'),pb=pw&&pw.querySelector('.pf-flap');
+ if(io&&!calm&&rv.length){
   rv.forEach(function(el){el.classList.add('pv-pre');});
-  if(pb&&!calm){pw.classList.add('pf-early');put(pb,'ON TIME');}
+  if(pb){pw.classList.add('pf-early');put(pb,'ON TIME');}
   var seen=new IntersectionObserver(function(es){
    es.forEach(function(e){
     if(!e.isIntersecting)return;
     var t=e.target;seen.unobserve(t);
     t.classList.remove('pv-pre');t.classList.add('pv-in');
-    if(t===pw&&pb&&!calm)setTimeout(function(){pw.classList.remove('pf-early');flap(pb,'DELAYED');},2150);
+    if(t===pw&&pb)setTimeout(function(){pw.classList.remove('pf-early');flap(pb,'DELAYED');},2150);
    });
   },{threshold:.05,rootMargin:'0px 0px -40px 0px'});
   rv.forEach(function(el){seen.observe(el);});
