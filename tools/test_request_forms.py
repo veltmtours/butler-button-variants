@@ -185,8 +185,9 @@ def _start_server(port: int, rate_max: int, transport: str = "smtp",
     env = dict(os.environ)
     env.update(
         {
+            # The same web root and landing page production uses (see Procfile).
             "WEB_ROOT": "proposed",
-            "INDEX_FILE": "home.html",
+            "INDEX_FILE": "hotel-concierge-program.html",
             # Sends come FROM the ZeptoMail-verified domain (veltmtours.com);
             # they land in the butlerbutton.co inbox. Recipients need no setup.
             "MAIL_FROM": "partners@veltmtours.com",
@@ -1049,6 +1050,51 @@ class ProductAndProof(unittest.TestCase):
         proof = self._section("proof")
         self.assertRegex(proof, r'<a class="btn btn-primary" href="#demo">Book a demo</a>')
         self.assertIn("demo mode", self._words(proof))
+
+
+class OnePage(unittest.TestCase):
+    """The hotel page is the only page the site shows. The old consumer
+    previews (and their prices) are gone, and their URLs lead to it."""
+
+    RETIRED = ("/home.html", "/index.html", "/concierge.html", "/trip-planning.html",
+               "/travel-advisor.html", "/supplier-code.html")
+
+    def test_the_web_root_holds_one_page_and_its_assets(self) -> None:
+        root = os.path.join(REPO, "proposed")
+        served = sorted(
+            os.path.relpath(os.path.join(folder, name), root).replace(os.sep, "/")
+            for folder, _, names in os.walk(root) for name in names
+        )
+        self.assertEqual(served, ["assets/ansh-dixit.jpg", "assets/logo.svg",
+                                  "hotel-concierge-program.html"])
+
+    def test_the_root_is_the_hotel_page(self) -> None:
+        with urllib.request.urlopen(f"{BASE}/", timeout=10) as res:
+            root = res.read()
+        with urllib.request.urlopen(f"{BASE}/hotel-concierge-program.html", timeout=10) as res:
+            self.assertEqual(res.read(), root)
+
+    def test_old_pages_lead_to_the_landing_page(self) -> None:
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *args, **kwargs):  # noqa: ANN002, ANN003
+                return None
+
+        opener = urllib.request.build_opener(NoRedirect)
+        for path in self.RETIRED + ("/home.html?utm_source=old-link",):
+            for method in ("GET", "HEAD"):
+                request = urllib.request.Request(f"{BASE}{path}", method=method)
+                with self.assertRaises(urllib.error.HTTPError, msg=f"{method} {path}") as caught:
+                    opener.open(request, timeout=10)
+                self.assertEqual(caught.exception.code, 301, f"{method} {path}")
+                self.assertEqual(caught.exception.headers.get("Location"), "/", f"{method} {path}")
+        # Followed, an old link shows the landing page itself.
+        with urllib.request.urlopen(f"{BASE}/concierge.html", timeout=10) as res:
+            self.assertIn('id="product"', res.read().decode())
+
+    def test_a_page_that_never_existed_is_still_not_found(self) -> None:
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            urllib.request.urlopen(f"{BASE}/no-such-page.html", timeout=10)
+        self.assertEqual(caught.exception.code, 404)
 
 
 class CacheHeaders(unittest.TestCase):

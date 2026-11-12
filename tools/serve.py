@@ -38,6 +38,19 @@ FORMS_PATH = "/forms/request"
 WEB_ROOT = os.environ.get("WEB_ROOT", ".")
 INDEX_FILE = os.environ.get("INDEX_FILE", "index.html")
 
+# Pages the site used to have. The hotel page is now the only page, so an old
+# link or bookmark lands on it instead of a 404. A path here is only redirected
+# when no such file exists in the web root, so local previews of other folders
+# (where index.html is a real page) are unaffected.
+RETIRED_PAGES = frozenset({
+    "/home.html",
+    "/index.html",
+    "/concierge.html",
+    "/trip-planning.html",
+    "/travel-advisor.html",
+    "/supplier-code.html",
+})
+
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -92,6 +105,19 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Access-Control-Max-Age", "86400")
 
+    def _redirect_retired_page(self) -> bool:
+        """Send an old page's visitors to the landing page. True if handled."""
+        page = self.path.split("?", 1)[0].split("#", 1)[0]
+        if page not in RETIRED_PAGES or page == "/" + INDEX_FILE:
+            return False
+        if os.path.isfile(os.path.join(self.directory, page.lstrip("/"))):
+            return False
+        self.send_response(301)
+        self.send_header("Location", "/")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+        return True
+
     def do_OPTIONS(self) -> None:  # noqa: N802
         if self.path.startswith(API_PREFIX):
             self.send_response(204)
@@ -129,12 +155,16 @@ class Handler(SimpleHTTPRequestHandler):
         # Serve the configured landing page for the site root.
         if self.path in ("", "/"):
             self.path = "/" + INDEX_FILE
+        elif self._redirect_retired_page():
+            return
         super().do_GET()
 
     def do_HEAD(self) -> None:  # noqa: N802
         # Same landing page as GET, so HEAD / describes the page GET / returns.
         if self.path in ("", "/"):
             self.path = "/" + INDEX_FILE
+        elif self._redirect_retired_page():
+            return
         super().do_HEAD()
 
     # ── Demo / meeting request forms ────────────────────────────────────
