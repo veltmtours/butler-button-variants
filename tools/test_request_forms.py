@@ -18,6 +18,7 @@ import email.policy
 import json
 import os
 import re
+import shutil
 import socket
 import socketserver
 import subprocess
@@ -1112,8 +1113,14 @@ class PeopleAndEarnings(unittest.TestCase):
         self.assertNotIn("<b>Minutes</b>", impact)
         self.assertIn('href="#founder"', self._section("people"))
         self.assertIsNone(re.search(r"\d+\s*(?:people|staff|agents|specialists|seconds|minutes)\b", people))
-        for word in ("chatbot", " AI ", " bot "):
-            self.assertNotIn(word, people)
+        # No response time, in digits or in words ("within two minutes"). The page's own
+        # promise, "any hour of the day or night", is not one, so it is set aside first.
+        timed = re.sub(r"\bany hour(?: of the day or night)?\b", " ", people, flags=re.I)
+        self.assertIsNone(re.search(r"\b(?:seconds?|minutes?|hours?|moments?|within)\b", timed, re.I),
+                          "the people section states a response time")
+        # Not AI, a chatbot or a bot, wherever in a sentence the word falls.
+        self.assertIsNone(re.search(r"(?<![A-Za-z])(?:AI|A\.I\.?|[Cc]hat-?bots?|[Bb]ots?)(?![A-Za-z])", people),
+                          "the people section calls the product AI or a bot")
 
     def test_the_calculator_states_no_fee_and_no_split(self) -> None:
         """An estimate of what the property earns, and nothing else. The fee,
@@ -1124,7 +1131,9 @@ class PeopleAndEarnings(unittest.TestCase):
         self.assertIsNone(re.search(r"\bfees?\b", earn, re.I), "the calculator section mentions a fee")
         # No rate of any kind: the only percentage is the slider's own readout,
         # and no figure carries a decimal point.
-        self.assertEqual(re.findall(r"\d+(?:\.\d+)?\s*%", earn), ["10%"])
+        readout = re.search(r'<output id="ec-buy-o"[^>]*>([^<]*)<', self._section("earn"))
+        self.assertIsNotNone(readout, "the take-up readout is missing")
+        self.assertEqual(re.findall(r"\d+(?:\.\d+)?\s*%", earn), [readout.group(1)])
         self.assertIsNone(re.search(r"\d\.\d", earn), "a decimal figure in the calculator section")
         # An earlier draft named these in its settings; the page must not carry them over.
         for leftover in ("commissionRate", "partnerShare", "monthlyFee", "Try it free"):
@@ -1174,10 +1183,61 @@ class PeopleAndEarnings(unittest.TestCase):
         exact = guests * slider("ec-spend") * float(share.group(1))
         # The script rounds an estimate to a sensible step, not to the dollar.
         step = 1 if exact < 100 else 5 if exact < 1000 else 50 if exact < 10000 else 500
-        month = round(exact / step) * step
+
+        def half_up(number: float) -> int:
+            """Math.round, for the positive numbers used here."""
+            return int(number + 0.5)
+
+        month = half_up(exact / step) * step
         self.assertEqual(shown("ec-month"), f"${month:,}")
         self.assertEqual(shown("ec-year"), f"${month * 12:,}")
-        self.assertEqual(shown("ec-n"), f"{round(guests):,} guests")
+        self.assertEqual(shown("ec-n"), f"{half_up(guests):,} guests")
+
+    def test_the_script_itself_does_the_sum(self) -> None:
+        """The test above recomputes the example in Python. This one runs the
+        page's own calculator code (no browser needed) and reads what it writes:
+        at the start, at one middling position and with every slider at its top."""
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("node is not installed")
+        earn = self._section("earn")
+        script = self.html[self.html.index("/* What the property earns."):].split("</script>")[0]
+        sliders = re.findall(r'<input type="range" id="(ec-\w+)" min="(\d+)" max="(\d+)" step="\d+" value="(\d+)">', earn)
+        self.assertEqual([name for name, *_ in sliders], ["ec-arr", "ec-buy", "ec-spend"])
+        harness = """
+const els = {}, on = new Set(), heard = {};
+const make = (id, min, max, value) => els[id] = { id, value, min, max, textContent: '', attrs: {}, className: '',
+  style: { setProperty() {} }, setAttribute(k, v) { this.attrs[k] = v; }, addEventListener(t, f) { heard[id] = f; },
+  appendChild(c) { return c; }, classList: { add: c => on.add(c), contains: c => on.has(c) } };
+['earn', 'ec-dots', 'ec-arr-o', 'ec-buy-o', 'ec-spend-o', 'ec-month', 'ec-year', 'ec-n', 'ec-sr'].forEach(id => make(id));
+SLIDERS.forEach(s => make(...s));
+global.document = { getElementById: id => els[id] || null, createElement: () => ({ className: '' }) };
+global.window = { Intl, addEventListener() {} };
+SCRIPT
+const read = () => [on.has('ec-js'), els['ec-arr-o'].textContent, els['ec-buy-o'].textContent, els['ec-spend-o'].textContent,
+  els['ec-month'].textContent, els['ec-year'].textContent, els['ec-n'].textContent, els['ec-arr'].attrs['aria-valuetext']];
+const set = (a, b, s) => { els['ec-arr'].value = a; els['ec-buy'].value = b; els['ec-spend'].value = s; (heard['ec-spend'] || (() => {}))(); };
+const out = [read()]; set('30', '7', '135'); out.push(read()); set('53', '25', '400'); out.push(read());
+console.log(JSON.stringify(out));
+""".replace("SLIDERS", json.dumps(sliders)).replace("SCRIPT", script)
+        done = subprocess.run([node, "-e", harness], capture_output=True, text=True, timeout=20)
+        self.assertEqual(done.returncode, 0, done.stderr[-400:])
+        start, middle, top = json.loads(done.stdout)
+
+        def shown(element_id: str) -> str:
+            return re.search(rf'id="{element_id}"[^>]*>([^<]*)<', earn).group(1)
+
+        # At the start the script switches itself on and writes exactly what the markup already says.
+        self.assertEqual(start[:7], [True] + [shown(i) for i in ("ec-arr-o", "ec-buy-o", "ec-spend-o", "ec-month", "ec-year", "ec-n")])
+        self.assertEqual(start[7], shown("ec-arr-o") + " arrivals each month")
+        # 850 arrivals, 7%, $135: 59.5 guests is 60, and $361.46 is an estimate of $360.
+        self.assertEqual(middle, [True, "850", "7%", "$135", "$360", "$4,320", "60 guests", "850 arrivals each month"])
+        self.assertEqual(top, [True, "10,000", "25%", "$400", "$45,000", "$540,000", "2,500 guests", "10,000 arrivals each month"])
+
+    def test_every_slider_has_a_label_and_a_readout(self) -> None:
+        earn = self._section("earn")
+        for slider in ("ec-arr", "ec-buy", "ec-spend"):
+            self.assertRegex(earn, rf'<label for="{slider}">[^<]+</label><output id="{slider}-o" for="{slider}"')
 
     def test_the_calculator_reads_as_an_example_until_script_runs(self) -> None:
         self.assertIn(".ec input[type=range]{display:none;", self.html)
@@ -1207,6 +1267,26 @@ class OnePage(unittest.TestCase):
             root = res.read()
         with urllib.request.urlopen(f"{BASE}/hotel-concierge-program.html", timeout=10) as res:
             self.assertEqual(res.read(), root)
+
+    def test_the_root_is_the_hotel_page_with_a_query_string_too(self) -> None:
+        """Ad and social links arrive as /?utm_source=... or /?fbclid=...
+        They must show the page, never a listing of the web root."""
+        with urllib.request.urlopen(f"{BASE}/", timeout=10) as res:
+            root = res.read()
+        for path in ("/?utm_source=newsletter&utm_medium=email", "/?fbclid=IwAR0abc", "/?"):
+            for method in ("GET", "HEAD"):
+                request = urllib.request.Request(f"{BASE}{path}", method=method)
+                with urllib.request.urlopen(request, timeout=10) as res:
+                    self.assertEqual(res.headers.get("Content-Length"), str(len(root)), f"{method} {path}")
+                    self.assertEqual(res.headers.get("Cache-Control"), "no-cache", f"{method} {path}")
+                    if method == "GET":
+                        self.assertEqual(res.read(), root, path)
+
+    def test_folders_are_never_listed(self) -> None:
+        for path in ("/assets/", "/assets/?C=M"):
+            with self.assertRaises(urllib.error.HTTPError, msg=path) as caught:
+                urllib.request.urlopen(f"{BASE}{path}", timeout=10)
+            self.assertEqual(caught.exception.code, 404, path)
 
     def test_old_pages_lead_to_the_landing_page(self) -> None:
         class NoRedirect(urllib.request.HTTPRedirectHandler):

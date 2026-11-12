@@ -105,9 +105,22 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Access-Control-Max-Age", "86400")
 
+    def _page(self) -> str:
+        """The requested path without its query string or fragment."""
+        return self.path.split("?", 1)[0].split("#", 1)[0]
+
+    def list_directory(self, path):  # noqa: ANN001, ANN201
+        """A folder is not a page: the site never shows a listing of its web
+        root or of assets/. The local preview of the whole workspace (the
+        default WEB_ROOT) keeps the stdlib listing, as before."""
+        if WEB_ROOT == ".":
+            return super().list_directory(path)
+        self.send_error(404, "File not found")
+        return None
+
     def _redirect_retired_page(self) -> bool:
         """Send an old page's visitors to the landing page. True if handled."""
-        page = self.path.split("?", 1)[0].split("#", 1)[0]
+        page = self._page()
         if page not in RETIRED_PAGES or page == "/" + INDEX_FILE:
             return False
         if os.path.isfile(os.path.join(self.directory, page.lstrip("/"))):
@@ -152,8 +165,10 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path.split("?")[0] == FORMS_PATH:
             self._send_form_json(405, {"success": False, "error": "method_not_allowed"})
             return
-        # Serve the configured landing page for the site root.
-        if self.path in ("", "/"):
+        # Serve the configured landing page for the site root. Ad and social
+        # links arrive as /?utm_source=... or /?fbclid=..., so the query string
+        # must not stop the root from being the root.
+        if self._page() in ("", "/"):
             self.path = "/" + INDEX_FILE
         elif self._redirect_retired_page():
             return
@@ -161,7 +176,7 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_HEAD(self) -> None:  # noqa: N802
         # Same landing page as GET, so HEAD / describes the page GET / returns.
-        if self.path in ("", "/"):
+        if self._page() in ("", "/"):
             self.path = "/" + INDEX_FILE
         elif self._redirect_retired_page():
             return

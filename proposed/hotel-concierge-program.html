@@ -1086,6 +1086,8 @@ a{color:inherit;text-decoration:none;}
 .ec input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--white);border:3px solid var(--indigo);
   box-shadow:0 2px 8px rgba(79,70,229,.35);}
 .ec input[type=range]:focus-visible{outline:2px solid var(--indigo);outline-offset:2px;border-radius:10px;}
+/* Keyboard focus scrolls the label into view with its slider, clear of the fixed nav. */
+.ec input[type=range]{scroll-margin-top:4rem;}
 .ec-fine{margin:0;padding-top:1.3rem;border-top:1px solid var(--border-gray);font-size:.82rem;line-height:1.55;color:var(--body-gray);
   text-wrap:pretty;}
 .ec-out{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:2.3rem 2.4rem;color:var(--white);
@@ -1119,11 +1121,33 @@ a{color:inherit;text-decoration:none;}
   .ec-sum,.ec-more{color:var(--white);background:var(--dark-2);}
   .ec-sum{order:-1;padding:1.6rem 1.5rem 1.45rem;
     background:radial-gradient(520px 320px at 100% 0,rgba(79,70,229,.36),transparent 66%),var(--dark-2);}
-  .ec-js .ec-sum{position:sticky;top:66px;z-index:2;}
   .ec-in{padding:1.5rem 1.5rem 1.4rem;gap:1.2rem;}
   .ec-more{order:1;padding:.3rem 1.5rem 1.9rem;}
   .ec-more .ec-dots{margin-top:1.4rem;}
   .ec-more .ec-who{margin-bottom:1.4rem;}
+}
+/* Pin the figure only where it leaves room to work the sliders (not in landscape, not when zoomed in), and only
+   where overflow:clip exists: without it .ec stays overflow:hidden and the figure would stick 66px down inside the card. */
+@supports (overflow:clip){
+  @media(max-width:699px) and (min-height:520px){
+    .ec-js .ec-sum{position:sticky;top:66px;z-index:2;}
+    /* Keyboard focus must not land underneath the pinned figure: leave room for it and for the slider's label. */
+    .ec-js .ec-in input[type=range],.ec-js .ec-more .btn{scroll-margin-top:17rem;}
+  }
+}
+/* Windows High Contrast drops gradients and fills: draw the slider track, the dots and the wire with borders. */
+@media(forced-colors:active){
+  .ec input[type=range]::-webkit-slider-runnable-track{border:1px solid CanvasText;}
+  .ec input[type=range]::-moz-range-track{border:1px solid CanvasText;}
+  .ec-dots i{border:1px solid CanvasText;}
+  .ec-dots i.on,.ec-js .ec-who b::before,.hp-hinge i:first-child,.hp-hinge i:last-child{forced-color-adjust:none;background:CanvasText;}
+  .hp-hinge b{border:1px solid CanvasText;}
+}
+/* On paper nothing waits to be scrolled into view, the dark panels keep their colours and the nav prints once. */
+@media print{
+  .pv-pre,.reveal{opacity:1!important;transform:none!important;}
+  .nav{position:absolute;}
+  .hp,.ec{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 }
 </style>
 </head>
@@ -1774,15 +1798,15 @@ a{color:inherit;text-decoration:none;}
   <div class="ec pv-rv" id="ec">
    <div class="ec-in">
     <div class="ec-f">
-     <div class="ec-row"><label for="ec-arr">Guest arrivals each month</label><output id="ec-arr-o" for="ec-arr">500</output></div>
+     <div class="ec-row"><label for="ec-arr">Guest arrivals each month</label><output id="ec-arr-o" for="ec-arr" aria-live="off">500</output></div>
      <input type="range" id="ec-arr" min="0" max="53" step="1" value="23">
     </div>
     <div class="ec-f">
-     <div class="ec-row"><label for="ec-buy">Guests who book a ride or a trip change</label><output id="ec-buy-o" for="ec-buy">10%</output></div>
+     <div class="ec-row"><label for="ec-buy">Guests who book a ride or a trip change</label><output id="ec-buy-o" for="ec-buy" aria-live="off">10%</output></div>
      <input type="range" id="ec-buy" min="1" max="25" step="1" value="10">
     </div>
     <div class="ec-f">
-     <div class="ec-row"><label for="ec-spend">What each of them spends, on average</label><output id="ec-spend-o" for="ec-spend">$100</output></div>
+     <div class="ec-row"><label for="ec-spend">What each of them spends, on average</label><output id="ec-spend-o" for="ec-spend" aria-live="off">$100</output></div>
      <input type="range" id="ec-spend" min="20" max="400" step="5" value="100">
     </div>
     <p class="ec-fine">Estimate only. The share depends on how many guests book and what they spend. It is paid to the property, or to whoever owns the revenue.</p>
@@ -1790,7 +1814,7 @@ a{color:inherit;text-decoration:none;}
    <div class="ec-out">
     <div class="ec-sum">
      <p class="ec-k">Your property's estimated share</p>
-     <p class="ec-big"><b id="ec-month" aria-live="polite">$225</b><span>each month</span></p>
+     <p class="ec-big"><b id="ec-month">$225</b><span>each month</span></p>
      <p class="ec-yr">About <b id="ec-year">$2,700</b> over a year</p>
     </div>
     <div class="ec-more">
@@ -1798,6 +1822,7 @@ a{color:inherit;text-decoration:none;}
      <p class="ec-who"><b id="ec-n">50 guests</b> each month with a ride or a trip change arranged by our team.</p>
      <a class="btn btn-primary" href="#demo">Book a demo</a>
     </div>
+    <p class="pv-sr" id="ec-sr" aria-live="polite"></p>
    </div>
   </div>
  </div>
@@ -2959,32 +2984,38 @@ document.querySelectorAll('.reveal').forEach((el,i)=>{
 (function(){
  var d=document,sec=d.getElementById('earn'),
    $=function(id){return d.getElementById(id);},
-   arr=$('ec-arr'),buy=$('ec-buy'),spend=$('ec-spend'),dots=$('ec-dots'),
+   arr=$('ec-arr'),buy=$('ec-buy'),spend=$('ec-spend'),dots=$('ec-dots'),sr=$('ec-sr'),
    o={arr:$('ec-arr-o'),buy:$('ec-buy-o'),spend:$('ec-spend-o'),month:$('ec-month'),year:$('ec-year'),n:$('ec-n')};
- if(!sec||!arr||!buy||!spend||!o.arr||!o.buy||!o.spend||!o.month||!o.year||!o.n||!window.Intl)return;
+ if(!sec||!arr||!buy||!spend||!o.arr||!o.buy||!o.spend||!o.month||!o.year||!o.n||!window.Intl||sec.classList.contains('ec-js'))return;
  /* One factor turns the three inputs into the estimate. */
  var SHARE=0.045,
    /* The arrivals slider steps through round numbers, one per position, from a few villas to a large hotel. */
    ARR=[20,25,30,35,40,45,50,60,70,80,90,100,125,150,175,200,225,250,275,300,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100,1200,1300,1400,1500,1750,2000,2250,2500,2750,3000,3500,4000,4500,5000,6000,7000,8000,9000,10000],
-   usd=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}),
-   num=new Intl.NumberFormat('en-US'),pips=[],i;
+   usd=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:0,maximumFractionDigits:0}),
+   num=new Intl.NumberFormat('en-US'),pips=[],i,rest;
  /* An estimate should not pretend to the last dollar. */
  function tidy(n){return n<100?Math.round(n):n<1000?Math.round(n/5)*5:n<10000?Math.round(n/50)*50:Math.round(n/500)*500;}
  /* One hundred dots: one guest in a hundred each. */
  if(dots)for(i=0;i<100;i++)pips.push(dots.appendChild(d.createElement('i')));
+ /* Write a node only when its text changes, so nothing is announced or repainted for no reason. */
+ function put(el,t){if(el.textContent!==t)el.textContent=t;}
  function render(){
   var a=ARR[Math.min(ARR.length-1,Math.max(0,parseInt(arr.value,10)||0))],pct=+buy.value||0,s=+spend.value||0,g=Math.round(a*pct/100),
     month=tidy(a*pct/100*s*SHARE),lit=Math.max(1,Math.round(pct/100*pips.length));
-  o.arr.textContent=num.format(a);arr.setAttribute('aria-valuetext',num.format(a)+' arrivals each month');
-  o.buy.textContent=pct+'%';buy.setAttribute('aria-valuetext',pct+' percent of guests');
-  o.spend.textContent=usd.format(s);spend.setAttribute('aria-valuetext',s+' dollars');
-  o.month.textContent=usd.format(month);
-  o.year.textContent=usd.format(month*12);
-  o.n.textContent=g<1?'Under 1 guest':num.format(g)+(g===1?' guest':' guests');
-  pips.forEach(function(p,k){p.className=k<lit?'on':'';});
+  put(o.arr,num.format(a));arr.setAttribute('aria-valuetext',num.format(a)+' arrivals each month');
+  put(o.buy,pct+'%');buy.setAttribute('aria-valuetext',pct+' percent of guests');
+  put(o.spend,usd.format(s));spend.setAttribute('aria-valuetext',s+' dollars');
+  put(o.month,usd.format(month));
+  put(o.year,usd.format(month*12));
+  put(o.n,g<1?'Under 1 guest':num.format(g)+(g===1?' guest':' guests'));
+  pips.forEach(function(p,k){var c=k<lit?'on':'';if(p.className!==c)p.className=c;});
   [arr,buy,spend].forEach(function(el){el.style.setProperty('--p',(el.value-el.min)/(el.max-el.min)*100+'%');});
  }
- [arr,buy,spend].forEach(function(el){el.addEventListener('input',render);});
+ /* One spoken result once the slider has come to rest: the figure with its unit, the year and the guests. */
+ function say(){if(sr)put(sr,'Estimated share: '+o.month.textContent+' each month, about '+o.year.textContent+' over a year, from '+o.n.textContent.toLowerCase()+'.');}
+ [arr,buy,spend].forEach(function(el){el.addEventListener('input',function(){render();clearTimeout(rest);rest=setTimeout(say,700);});});
+ /* The browser puts slider positions back after this script has run (Back, a reloaded tab): follow them. */
+ window.addEventListener('pageshow',render);
  sec.classList.add('ec-js');
  render();
 })();
