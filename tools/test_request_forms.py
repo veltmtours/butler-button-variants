@@ -1259,7 +1259,9 @@ class OnePage(unittest.TestCase):
             os.path.relpath(os.path.join(folder, name), root).replace(os.sep, "/")
             for folder, _, names in os.walk(root) for name in names
         )
-        self.assertEqual(served, ["assets/ansh-dixit.jpg", "assets/logo.svg",
+        guest = [f"assets/guest-{pose}.webp" for pose in (
+            "arriving", "celebrate", "hello", "hero", "portal", "stuck", "watch")]
+        self.assertEqual(served, ["assets/ansh-dixit.jpg", *guest, "assets/logo.svg",
                                   "hotel-concierge-program.html"])
 
     def test_the_root_is_the_hotel_page(self) -> None:
