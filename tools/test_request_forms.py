@@ -1246,14 +1246,15 @@ console.log(JSON.stringify(out));
                          r'<span class="ec-j">[^<]+</span><span class="ec-nj">Here is one example\.</span>')
 
 
-class OnePage(unittest.TestCase):
-    """The hotel page is the only page the site shows. The old consumer
-    previews (and their prices) are gone, and their URLs lead to it."""
+class SitePages(unittest.TestCase):
+    """The site shows the hotel page and, at /demo/, the landing page sent in
+    hotel outreach. The old consumer previews (and their prices) are gone, and
+    their URLs lead to the hotel page."""
 
     RETIRED = ("/home.html", "/index.html", "/concierge.html", "/trip-planning.html",
                "/travel-advisor.html", "/supplier-code.html")
 
-    def test_the_web_root_holds_one_page_and_its_assets(self) -> None:
+    def test_the_web_root_holds_two_pages_and_their_assets(self) -> None:
         root = os.path.join(REPO, "proposed")
         served = sorted(
             os.path.relpath(os.path.join(folder, name), root).replace(os.sep, "/")
@@ -1262,7 +1263,7 @@ class OnePage(unittest.TestCase):
         guest = [f"assets/guest-{pose}.webp" for pose in (
             "arriving", "celebrate", "hello", "hero", "portal", "stuck", "watch")]
         self.assertEqual(served, ["assets/ansh-dixit.jpg", *guest, "assets/logo.svg",
-                                  "hotel-concierge-program.html"])
+                                  "demo/index.html", "hotel-concierge-program.html"])
 
     def test_the_root_is_the_hotel_page(self) -> None:
         with urllib.request.urlopen(f"{BASE}/", timeout=10) as res:
@@ -1313,6 +1314,82 @@ class OnePage(unittest.TestCase):
         self.assertEqual(caught.exception.code, 404)
 
 
+class DemoLanding(unittest.TestCase):
+    """/demo/ is the page sent in hotel outreach. It has one goal: every button
+    says "Book a demo" and opens the hotel page's own request modal, which is
+    copied here unchanged so the two pages can never book differently."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        with urllib.request.urlopen(f"{BASE}/demo/", timeout=10) as res:
+            cls.html = res.read().decode()
+        with urllib.request.urlopen(f"{BASE}/hotel-concierge-program.html", timeout=10) as res:
+            cls.hotel = res.read().decode()
+        # The page's own markup, without the shared modal and the scripts.
+        cls.own = cls.html.split("<body>", 1)[1].split("<!-- REQUEST MODAL -->", 1)[0]
+
+    @staticmethod
+    def _block(html: str, start: str, end: str) -> str:
+        begin = html.index(start)
+        return html[begin:html.index(end, begin + len(start))]
+
+    def test_a_link_without_the_slash_or_with_a_tag_still_arrives(self) -> None:
+        """Outreach links get retyped and tagged: /demo and /demo?ref=... both
+        reach the page, and the tag survives the redirect."""
+        with urllib.request.urlopen(f"{BASE}/demo?ref=amruta", timeout=10) as res:
+            self.assertEqual(res.geturl(), f"{BASE}/demo/?ref=amruta")
+            self.assertEqual(res.read().decode(), self.html)
+
+    def test_the_request_modal_is_the_hotel_pages_unchanged(self) -> None:
+        """If this fails, the modal was edited on one page only: copy its
+        styles, markup and script from the hotel page to demo/index.html."""
+        for what, start, end in (
+            ("styles", "   REQUEST MODAL — book a demo, or request one", "@media(prefers-reduced-motion:reduce){"),
+            ("markup", "<!-- REQUEST MODAL -->", "<script>"),
+            ("script", "<script>\n/* Request modal", "</script>"),
+        ):
+            self.assertEqual(self._block(self.html, start, end),
+                             self._block(self.hotel, start, end), what)
+
+    def test_every_button_books_a_demo(self) -> None:
+        buttons = re.findall(r'<button\b[^>]*data-request="(\w+)"[^>]*>([^<]*)</button>', self.html)
+        self.assertGreaterEqual(len(buttons), 4)
+        self.assertEqual(set(buttons), {("demo", "Book a demo")})
+        self.assertEqual(self.html.count("data-request="), len(buttons))
+        # The script preloads open times when this section comes near.
+        self.assertIn('id="demo"', self.own)
+
+    def test_nothing_leads_away_from_the_page(self) -> None:
+        """No menu and no links out: the only way forward is the button."""
+        self.assertNotIn('class="nav-links"', self.html)
+        ids = set(re.findall(r'\bid="([^"]+)"', self.html))
+        hrefs = re.findall(r'<a\b[^>]*\bhref="([^"]*)"', self.own)
+        self.assertTrue(hrefs)
+        for href in hrefs:
+            if href.startswith("#"):
+                self.assertIn(href[1:], ids, href)
+            else:
+                self.assertTrue(href.startswith("mailto:partners@butlerbutton.co"), href)
+
+    def test_it_uses_the_shared_assets(self) -> None:
+        """The page sits one folder down, so every asset is reached with ../"""
+        self.assertNotRegex(self.html, r'(?:src|href)="assets/')
+        used = set(re.findall(r'(?:src|href)="\.\./(assets/[^"]+)"', self.html))
+        self.assertIn("assets/guest-hero.webp", used)
+        for path in used:
+            self.assertTrue(os.path.isfile(os.path.join(REPO, "proposed", path)), path)
+
+    def test_it_quotes_no_prices_and_stays_out_of_search(self) -> None:
+        text = re.sub(r"<(script|style)\b.*?</\1>", "", self.html, flags=re.S)
+        self.assertNotRegex(text, r"\$\s?\d")
+        self.assertIn('<meta name="robots" content="noindex">', self.html)
+
+    def test_a_link_ending_in_book_opens_the_booking(self) -> None:
+        after_modal = self.html.rsplit("</script>", 2)[1]
+        self.assertIn("location.hash !== '#book'", after_modal)
+        self.assertIn("querySelector('[data-request]')", after_modal)
+
+
 class CacheHeaders(unittest.TestCase):
     """Pages revalidate on every visit so a deploy shows up at once; assets keep the default."""
 
@@ -1322,7 +1399,8 @@ class CacheHeaders(unittest.TestCase):
             return res.headers.get("Cache-Control", "")
 
     def test_pages_are_not_served_stale(self) -> None:
-        for path in ("/", "/hotel-concierge-program.html", "/hotel-concierge-program.html?v=2"):
+        for path in ("/", "/hotel-concierge-program.html", "/hotel-concierge-program.html?v=2",
+                     "/demo/", "/demo/?ref=amruta"):
             self.assertEqual(self._cache_control(path), "no-cache", path)
 
     def test_assets_are_left_alone(self) -> None:
